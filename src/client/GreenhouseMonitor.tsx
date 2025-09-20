@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Thermometer, Droplets, Wifi, WifiOff, Leaf, Cpu, HardDrive, Activity } from 'lucide-react';
+import { Thermometer, Droplets, Wifi, WifiOff, Leaf, Cpu, HardDrive, Activity, Sprout, Sun, CloudRain } from 'lucide-react';
 
 export default function GreenhouseMonitor() {
     const [data, setData] = useState({
