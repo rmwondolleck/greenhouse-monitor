@@ -141,7 +141,7 @@ export default function GreenhouseMonitor() {
                 )}
 
                 {/* Main Data Cards */}
-                <div className="grid lg:grid-cols-2 gap-8 mb-8">
+                <div className="grid grid-cols-2 gap-8 mb-8">
                     {/* Temperature Card */}
                     <div className={`bg-white rounded-3xl shadow-xl p-8 border-2 border-green-200 ${tempStatus?.bg || ''} transition-all duration-300`}>
                         <div className="flex items-center justify-between mb-6">
