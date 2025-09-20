@@ -5,15 +5,15 @@
   "main": "dist/server.js",
   "scripts": {
     "build": "npm run build:server && npm run build:client",
-    "build:server": "tsc",
+    "build:server": "tsc --project tsconfig.server.json",
     "build:client": "vite build",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:server": "NODE_ENV=development ts-node src/server.ts",
-    "dev:pi": "RASPBERRY_PI=true ts-node src/server.ts",
+    "dev:server": "NODE_ENV=development ts-node --project tsconfig.server.json src/server.ts",
+    "dev:pi": "RASPBERRY_PI=true ts-node --project tsconfig.server.json src/server.ts",
     "start": "NODE_ENV=production node dist/server.js",
     "start:pi": "RASPBERRY_PI=true node dist/server.js",
     "clean": "rm -rf dist",
-    "type-check": "tsc --noEmit",
+    "type-check": "tsc --noEmit --project tsconfig.server.json && tsc --noEmit --project src/client",
     "test:mock": "NODE_ENV=development node -e \"console.log('Testing mock mode...'); require('./dist/server.js')\""
   },
   "dependencies": {
