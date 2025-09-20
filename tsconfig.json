@@ -1,6 +1,4 @@
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
   "compilerOptions": {
     "target": "ES2020",
     "module": "commonjs",
@@ -41,59 +39,3 @@
     "**/*.spec.ts"
   ]
 }
-=======
-  "include": [
-    "**/*",
-    "**/.server/**/*",
-    "**/.client/**/*",
-    ".react-router/types/**/*"
-  ],
-=======
->>>>>>> 7ae74a6 (fix history)
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "commonjs",
-    "lib": ["ES2020"],
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-<<<<<<< HEAD
-    "strict": true
-  }
-}
->>>>>>> 27c2c41 (Initial commit from create-react-router)
-=======
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "removeComments": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "noImplicitThis": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "node",
-    "baseUrl": "./",
-    "paths": {
-      "@/*": ["src/*"]
-    },
-    "allowSyntheticDefaultImports": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
-  },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.spec.ts"
-  ]
-}
->>>>>>> 7ae74a6 (fix history)
