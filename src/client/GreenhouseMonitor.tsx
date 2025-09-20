@@ -209,6 +209,48 @@ export default function GreenhouseMonitor() {
                     </div>
                 </div>
 
+                {/* Growing Conditions Summary */}
+                <div className="bg-white rounded-3xl shadow-xl p-8 border-2 border-green-200 mb-8">
+                    <div className="flex items-center mb-6">
+                        <div className="p-3 bg-green-500 rounded-2xl mr-4">
+                            <Sprout className="w-8 h-8 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-800">Growing Conditions</h3>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-6">
+                        <div className="text-center p-4 rounded-xl bg-green-50">
+                            <Sun className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
+                            <p className="font-semibold text-gray-800">Temperature</p>
+                            <p className={`text-sm font-medium ${tempStatus?.color || 'text-gray-500'}`}>
+                                {tempStatus?.status || 'Monitoring...'}
+                            </p>
+                        </div>
+
+                        <div className="text-center p-4 rounded-xl bg-blue-50">
+                            <CloudRain className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                            <p className="font-semibold text-gray-800">Humidity</p>
+                            <p className={`text-sm font-medium ${humidityStatus?.color || 'text-gray-500'}`}>
+                                {humidityStatus?.status || 'Monitoring...'}
+                            </p>
+                        </div>
+
+                        <div className="text-center p-4 rounded-xl bg-emerald-50">
+                            <Leaf className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
+                            <p className="font-semibold text-gray-800">Overall</p>
+                            <p className={`text-sm font-medium ${
+                                (tempStatus?.status === 'Optimal' && humidityStatus?.status === 'Optimal')
+                                    ? 'text-green-600'
+                                    : 'text-yellow-600'
+                            }`}>
+                                {(tempStatus?.status === 'Optimal' && humidityStatus?.status === 'Optimal')
+                                    ? 'Perfect Growth'
+                                    : 'Needs Attention'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Pi System Monitoring */}
                 <div className="bg-white rounded-3xl shadow-xl p-8 border-2 border-green-200 mb-8">
                     <div className="flex items-center mb-6">
@@ -269,48 +311,6 @@ export default function GreenhouseMonitor() {
                             </div>
                         </div>
                     )}
-                </div>
-
-                {/* Growing Conditions Summary */}
-                <div className="bg-white rounded-3xl shadow-xl p-8 border-2 border-green-200 mb-8">
-                    <div className="flex items-center mb-6">
-                        <div className="p-3 bg-green-500 rounded-2xl mr-4">
-                            <Sprout className="w-8 h-8 text-white" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-800">Growing Conditions</h3>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-6">
-                        <div className="text-center p-4 rounded-xl bg-green-50">
-                            <Sun className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-                            <p className="font-semibold text-gray-800">Temperature</p>
-                            <p className={`text-sm font-medium ${tempStatus?.color || 'text-gray-500'}`}>
-                                {tempStatus?.status || 'Monitoring...'}
-                            </p>
-                        </div>
-
-                        <div className="text-center p-4 rounded-xl bg-blue-50">
-                            <CloudRain className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                            <p className="font-semibold text-gray-800">Humidity</p>
-                            <p className={`text-sm font-medium ${humidityStatus?.color || 'text-gray-500'}`}>
-                                {humidityStatus?.status || 'Monitoring...'}
-                            </p>
-                        </div>
-
-                        <div className="text-center p-4 rounded-xl bg-emerald-50">
-                            <Leaf className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-                            <p className="font-semibold text-gray-800">Overall</p>
-                            <p className={`text-sm font-medium ${
-                                (tempStatus?.status === 'Optimal' && humidityStatus?.status === 'Optimal')
-                                    ? 'text-green-600'
-                                    : 'text-yellow-600'
-                            }`}>
-                                {(tempStatus?.status === 'Optimal' && humidityStatus?.status === 'Optimal')
-                                    ? 'Perfect Growth'
-                                    : 'Needs Attention'}
-                            </p>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Status Bar */}
