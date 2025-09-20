@@ -1,7 +1,15 @@
+// Load environment variables from .env file
+import dotenv from 'dotenv';
+
+// Load environment variables as early as possible
+// This ensures they're available for the entire application
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
+
 import { execSync } from 'child_process';
 
 // Configuration
