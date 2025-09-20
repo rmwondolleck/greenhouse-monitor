@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom greenhouse-themed styles */
+@layer base {
+    body {
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+}
+
+@layer components {
+    .greenhouse-gradient {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #bbf7d0 100%);
+    }
+
+    .sensor-card {
+        @apply bg-white rounded-3xl shadow-xl border-2 border-green-200 transition-all duration-300 hover:shadow-2xl hover:scale-[1.02];
+    }
+
+    .status-optimal {
+        @apply bg-green-50 border-green-200;
+    }
+
+    .status-warning {
+        @apply bg-yellow-50 border-yellow-200;
+    }
+
+    .status-danger {
+        @apply bg-red-50 border-red-200;
+    }
+}
+
+/* Animation for sensor readings */
+@keyframes pulse-gentle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+.reading-update {
+    animation: pulse-gentle 0.5s ease-in-out;
+}
+
+/* Custom scrollbar for better mobile experience */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #16a34a;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #15803d;
+}
