@@ -1,13 +1,8 @@
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 7ae74a6 (fix history)
   "name": "greenhouse-monitor",
   "version": "1.0.0",
   "description": "Raspberry Pi Greenhouse Environmental Monitor with DHT11 sensor",
   "main": "dist/server.js",
-<<<<<<< HEAD
   "scripts": {
     "build": "npm run build:server && npm run build:client",
     "build:server": "tsc",
@@ -57,73 +52,5 @@
   "license": "MIT",
   "engines": {
     "node": ">=16.0.0"
-=======
-  "name": "",
-  "private": true,
-  "type": "module",
-=======
->>>>>>> 7ae74a6 (fix history)
-  "scripts": {
-    "build": "npm run build:server && npm run build:client",
-    "build:server": "tsc",
-    "build:client": "vite build",
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:server": "NODE_ENV=development ts-node src/server.ts",
-    "dev:pi": "RASPBERRY_PI=true ts-node src/server.ts",
-    "start": "NODE_ENV=production node dist/server.js",
-    "start:pi": "RASPBERRY_PI=true node dist/server.js",
-    "clean": "rm -rf dist",
-    "type-check": "tsc --noEmit",
-    "test:mock": "NODE_ENV=development node -e \"console.log('Testing mock mode...'); require('./dist/server.js')\""
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "node-dht-sensor": "^0.4.3",
-    "@oawu/lcd1602": "^1.0.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "lucide-react": "^0.263.1"
-  },
-  "devDependencies": {
-<<<<<<< HEAD
-    "@react-router/dev": "^7.7.1",
-    "@tailwindcss/vite": "^4.1.4",
-    "@types/node": "^20",
-    "@types/react": "^19.1.2",
-    "@types/react-dom": "^19.1.2",
-    "tailwindcss": "^4.1.4",
-    "typescript": "^5.8.3",
-    "vite": "^6.3.3",
-    "vite-tsconfig-paths": "^5.1.4"
->>>>>>> 27c2c41 (Initial commit from create-react-router)
-=======
-    "@types/express": "^4.17.17",
-    "@types/cors": "^2.8.13",
-    "@types/node": "^20.5.0",
-    "@types/react": "^18.2.20",
-    "@types/react-dom": "^18.2.7",
-    "typescript": "^5.1.6",
-    "ts-node": "^10.9.1",
-    "concurrently": "^8.2.0",
-    "vite": "^4.4.9",
-    "@vitejs/plugin-react": "^4.0.4",
-    "tailwindcss": "^3.3.3",
-    "autoprefixer": "^10.4.15",
-    "postcss": "^8.4.28"
-  },
-  "keywords": [
-    "greenhouse",
-    "raspberry-pi",
-    "dht11",
-    "environmental-monitoring",
-    "typescript",
-    "react"
-  ],
-  "author": "Your Name",
-  "license": "MIT",
-  "engines": {
-    "node": ">=16.0.0"
->>>>>>> 7ae74a6 (fix history)
   }
 }
