@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Thermometer, Droplets, Wifi, WifiOff, Leaf, Sun, CloudRain, Sprout } from 'lucide-react';
+import { Thermometer, Droplets, Wifi, WifiOff, Leaf, Cpu, HardDrive, Activity, Sprout, Sun, CloudRain } from 'lucide-react';
 
 export default function GreenhouseMonitor() {
     const [data, setData] = useState({
         temperature: null,
         humidity: null,
         lastUpdated: null
+    });
+    const [systemStats, setSystemStats] = useState({
+        cpuTemp: null,
+        cpuTempF: null,
+        cpuUsage: null,
+        memoryUsage: null,
+        diskUsage: null,
+        overheat: false
     });
     const [isConnected, setIsConnected] = useState(true);
     const [error, setError] = useState(null);
@@ -29,10 +37,28 @@ export default function GreenhouseMonitor() {
         }
     };
 
+    // Fetch Pi system stats
+    const fetchSystemStats = async () => {
+        try {
+            const response = await fetch('/api/system-stats');
+            const stats = await response.json();
+            setSystemStats(stats);
+        } catch (err) {
+            console.error('Failed to fetch system stats:', err);
+        }
+    };
+
     useEffect(() => {
         fetchSensorData();
-        const interval = setInterval(fetchSensorData, 5000);
-        return () => clearInterval(interval);
+        fetchSystemStats();
+
+        const sensorInterval = setInterval(fetchSensorData, 5000);
+        const systemInterval = setInterval(fetchSystemStats, 30000); // Less frequent for system stats
+
+        return () => {
+            clearInterval(sensorInterval);
+            clearInterval(systemInterval);
+        };
     }, []);
 
     const formatTime = (isoString) => {
@@ -225,6 +251,68 @@ export default function GreenhouseMonitor() {
                     </div>
                 </div>
 
+                {/* Pi System Monitoring */}
+                <div className="bg-white rounded-3xl shadow-xl p-8 border-2 border-green-200 mb-8">
+                    <div className="flex items-center mb-6">
+                        <div className="p-3 bg-purple-500 rounded-2xl mr-4">
+                            <Cpu className="w-8 h-8 text-white" />
+                        </div>
+                        <div>
+                            <h3 className="text-2xl font-bold text-gray-800">Raspberry Pi Status</h3>
+                            <p className="text-gray-600">System Health Monitoring</p>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-4 gap-6">
+                        <div className={`text-center p-4 rounded-xl ${systemStats.overheat ? 'bg-red-50 border-2 border-red-200' : 'bg-gray-50'}`}>
+                            <Thermometer className={`w-8 h-8 mx-auto mb-2 ${systemStats.overheat ? 'text-red-500' : 'text-purple-500'}`} />
+                            <p className="font-semibold text-gray-800">CPU Temp</p>
+                            <p className={`text-lg font-bold ${systemStats.overheat ? 'text-red-600' : 'text-gray-700'}`}>
+                                {systemStats.cpuTempF ? `${systemStats.cpuTempF}°F` : '--°F'}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                                {systemStats.cpuTemp ? `${systemStats.cpuTemp.toFixed(1)}°C` : '--°C'}
+                            </p>
+                        </div>
+
+                        <div className="text-center p-4 rounded-xl bg-blue-50">
+                            <Activity className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                            <p className="font-semibold text-gray-800">CPU Usage</p>
+                            <p className="text-lg font-bold text-gray-700">
+                                {systemStats.cpuUsage ? `${systemStats.cpuUsage.toFixed(1)}%` : '--%'}
+                            </p>
+                        </div>
+
+                        <div className="text-center p-4 rounded-xl bg-green-50">
+                            <Activity className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                            <p className="font-semibold text-gray-800">Memory</p>
+                            <p className="text-lg font-bold text-gray-700">
+                                {systemStats.memoryUsage ? `${systemStats.memoryUsage.toFixed(1)}%` : '--%'}
+                            </p>
+                        </div>
+
+                        <div className="text-center p-4 rounded-xl bg-yellow-50">
+                            <HardDrive className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
+                            <p className="font-semibold text-gray-800">Disk Usage</p>
+                            <p className="text-lg font-bold text-gray-700">
+                                {systemStats.diskUsage ? `${systemStats.diskUsage}%` : '--%'}
+                            </p>
+                        </div>
+                    </div>
+
+                    {systemStats.overheat && (
+                        <div className="mt-4 p-4 bg-red-100 border-l-4 border-red-500 text-red-700">
+                            <div className="flex items-center">
+                                <span className="text-2xl mr-3">🚨</span>
+                                <div>
+                                    <p className="font-semibold">CPU Overheat Warning!</p>
+                                    <p className="text-sm">CPU temperature is critically high. Consider improving cooling or reducing load.</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
                 {/* Status Bar */}
                 <div className="bg-white rounded-2xl shadow-lg p-6 border border-green-200">
                     <div className="flex items-center justify-between">
@@ -236,11 +324,16 @@ export default function GreenhouseMonitor() {
                                 <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
                                 <span className="text-sm text-gray-600">DHT11 Sensor</span>
                             </div>
+                            <div className="flex items-center space-x-2">
+                                <div className={`w-3 h-3 rounded-full ${systemStats.overheat ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                                <span className="text-sm text-gray-600">Pi Health</span>
+                            </div>
                         </div>
 
                         <div className="text-right">
                             <p className="text-xs text-gray-500">Raspberry Pi 4</p>
                             <p className="text-xs text-gray-500">Greenhouse Control System</p>
+                            <p className="text-xs text-gray-500">Data logging every 5 minutes</p>
                         </div>
                     </div>
                 </div>
