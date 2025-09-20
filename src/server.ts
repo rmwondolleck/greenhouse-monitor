@@ -648,21 +648,67 @@ class GreenhouseController {
 
     // Graceful shutdown
     public setupGracefulShutdown(): void {
-        process.on('SIGINT', () => {
-            console.log('\n🛑 Shutting down greenhouse server...');
-            try {
-                if (isDevelopment) {
-                    console.log('🤖 Mock LCD: Goodbye message displayed');
-                } else {
-                    this.lcd.text(0, 0, 'Server Off     ');
-                    this.lcd.text(1, 0, 'Goodbye!       ');
+        // Handle multiple signal types for better cross-platform compatibility
+        const signals = ['SIGINT', 'SIGTERM', 'SIGHUP'];
+
+        signals.forEach(signal => {
+            process.on(signal, async () => {
+                console.log(`\n🛑 Shutting down greenhouse server... (${signal})`);
+
+                // Function to safely clean up LCD
+                const cleanupLCD = async () => {
+                    try {
+                        if (isDevelopment) {
+                            console.log('🤖 Mock LCD: Displaying goodbye message and turning off');
+                        } else if (this.lcd) {
+                            // Display shutdown message
+                            console.log('📺 LCD: Displaying shutdown message');
+                            this.lcd.text(0, 0, 'Server Off     ');
+                            this.lcd.text(1, 0, 'Goodbye!       ');
+
+                            // Wait a moment for the message to be visible
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+
+                            // Clear display to prevent burn-in if left in this state
+                            console.log('📺 LCD: Clearing display');
+                            this.lcd.text(0, 0, '                ');
+                            this.lcd.text(1, 0, '                ');
+
+                            // If the LCD library has a close/cleanup method, call it
+                            if (typeof this.lcd.close === 'function') {
+                                console.log('📺 LCD: Closing LCD connection');
+                                this.lcd.close();
+                            }
+                        }
+                        return true;
+                    } catch (error) {
+                        console.error('❌ LCD shutdown error:', error);
+                        return false;
+                    }
+                };
+
+                try {
+                    // Clean up the LCD with timeout protection
+                    const lcdCleanupPromise = cleanupLCD();
+                    const timeoutPromise = new Promise(resolve => setTimeout(() => {
+                        console.warn('⚠️ LCD cleanup timed out');
+                        resolve(false);
+                    }, 2000));
+
+                    // Wait for LCD cleanup or timeout, whichever comes first
+                    await Promise.race([lcdCleanupPromise, timeoutPromise]);
+
+                    console.log('👋 Greenhouse server shutdown complete');
+                } catch (error) {
+                    console.error('❌ Error during shutdown:', error);
+                } finally {
+                    // Ensure the process exits even if there were errors
+                    process.exit(0);
                 }
-            } catch (error) {
-                console.error('LCD shutdown message failed:', error);
-            }
-            process.exit(0);
+            });
         });
     }
+
 }
 
 // Create and start the server
