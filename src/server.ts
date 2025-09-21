@@ -648,66 +648,56 @@ class GreenhouseController {
 
     // Graceful shutdown
     public setupGracefulShutdown(): void {
-        // Handle multiple signal types for better cross-platform compatibility
+        // Handle different signals
         const signals = ['SIGINT', 'SIGTERM', 'SIGHUP'];
 
         signals.forEach(signal => {
             process.on(signal, async () => {
                 console.log(`\n🛑 Shutting down greenhouse server... (${signal})`);
 
-                // Function to safely clean up LCD
-                const cleanupLCD = async () => {
-                    try {
-                        if (isDevelopment) {
-                            console.log('🤖 Mock LCD: Displaying goodbye message and turning off');
-                        } else if (this.lcd) {
-                            // Display shutdown message
-                            console.log('📺 LCD: Displaying shutdown message');
-                            this.lcd.text(0, 0, 'Server Off     ');
-                            this.lcd.text(1, 0, 'Goodbye!       ');
-
-                            // Wait a moment for the message to be visible
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-
-                            // Clear display to prevent burn-in if left in this state
-                            console.log('📺 LCD: Clearing display');
-                            this.lcd.text(0, 0, '                ');
-                            this.lcd.text(1, 0, '                ');
-
-                            // If the LCD library has a close/cleanup method, call it
-                            if (typeof this.lcd.close === 'function') {
-                                console.log('📺 LCD: Closing LCD connection');
-                                this.lcd.close();
-                            }
-                        }
-                        return true;
-                    } catch (error) {
-                        console.error('❌ LCD shutdown error:', error);
-                        return false;
-                    }
-                };
-
                 try {
-                    // Clean up the LCD with timeout protection
-                    const lcdCleanupPromise = cleanupLCD();
-                    const timeoutPromise = new Promise(resolve => setTimeout(() => {
-                        console.warn('⚠️ LCD cleanup timed out');
-                        resolve(false);
-                    }, 2000));
+                    if (isDevelopment) {
+                        console.log('🤖 Mock LCD: Displaying goodbye message and powering off');
+                    } else if (this.lcd) {
+                        // 1. Display shutdown message
+                        console.log('📺 LCD: Displaying shutdown message');
+                        this.lcd.text(0, 0, 'Server Off     ');
+                        this.lcd.text(1, 0, 'Goodbye!       ');
 
-                    // Wait for LCD cleanup or timeout, whichever comes first
-                    await Promise.race([lcdCleanupPromise, timeoutPromise]);
+                        // Wait a moment for the message to be visible
+                        await new Promise(resolve => setTimeout(resolve, 3000));
 
-                    console.log('👋 Greenhouse server shutdown complete');
+                        // 2. Turn off display while preserving content (DISPLAY_OFF)
+                        console.log('📺 LCD: Turning off display');
+                        this.lcd.display(false);
+
+                        // 3. Wait a moment
+                        await new Promise(resolve => setTimeout(resolve, 500));
+
+                        // 4. Turn off backlight
+                        console.log('📺 LCD: Turning off backlight');
+                        this.lcd.light(false);
+
+                        // 5. Clear the display memory
+                        console.log('📺 LCD: Clearing display memory');
+                        this.lcd.clear();
+
+                        // 6. Final wait to ensure all I2C commands are processed
+                        await new Promise(resolve => setTimeout(resolve, 500));
+
+                        console.log('✅ LCD shutdown complete');
+                    }
                 } catch (error) {
-                    console.error('❌ Error during shutdown:', error);
+                    console.error('❌ LCD shutdown error:', error);
                 } finally {
-                    // Ensure the process exits even if there were errors
+                    console.log('👋 Greenhouse server shutdown complete');
                     process.exit(0);
                 }
             });
         });
     }
+
+
 
 }
 
