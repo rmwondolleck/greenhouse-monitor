@@ -49,6 +49,55 @@ Greenhouse Monitor is a full-stack TypeScript application for monitoring and rec
    ```
 
 ## Running the Application
+Run from terminal:
+```bash
+npm run dev:server
+```
+OR
+
+Install as a systemd service:
+
+1. Create greenhouse-monitor.service file in /etc/systemd/system/
+```bash
+sudo vi /etc/systemd/system/greenhouse-monitor.service
+````
+Add the following configuration:
+```bash
+[Unit]
+Description=Greenhouse Monitor
+After=network.target
+
+[Service]
+Type=simple
+User=<pi-user>
+WorkingDirectory=<path/to>/greenhouse-monitor
+ExecStart=/usr/bin/npm run start:pi
+Restart=on-failure
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=greenhouse-monitor
+Environment=NODE_ENV=production
+
+# Give the process time to clean up
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target
+
+```
+
+2. Enable and start the service:
+```bash
+sudo systemctl enable greenhouse-monitor
+sudo systemctl start greenhouse-monitor
+```
+3. Stop the service:
+```bash
+sudo systemctl stop greenhouse-monitor
+
+```
+
 
 ### Development Environment (Simulated Hardware)
 
