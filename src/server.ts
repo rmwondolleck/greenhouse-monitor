@@ -667,37 +667,45 @@ class GreenhouseController {
                         // Wait a moment for the message to be visible
                         await new Promise(resolve => setTimeout(resolve, 3000));
 
-                        // 2. Turn off display while preserving content (DISPLAY_OFF)
-                        console.log('📺 LCD: Turning off display');
-                        this.lcd.display(false);
-
-                        // 3. Wait a moment
-                        await new Promise(resolve => setTimeout(resolve, 500));
-
-                        // 4. Turn off backlight
-                        console.log('📺 LCD: Turning off backlight');
-                        this.lcd.light(false);
-
-                        // 5. Clear the display memory
-                        console.log('📺 LCD: Clearing display memory');
+                        // 2. Clear the display
+                        console.log('📺 LCD: Clearing display');
                         this.lcd.clear();
+                        await new Promise(resolve => setTimeout(resolve, 200));
 
-                        // 6. Final wait to ensure all I2C commands are processed
-                        await new Promise(resolve => setTimeout(resolve, 500));
+                        // 3. Try to turn off the display using direct command
+                        // The library uses constant DISPLAY_OFF = 0x00
+                        console.log('📺 LCD: Sending direct display off command');
+                        this.lcd.write(0x08); // DISPLAY_CONTROL without DISPLAY_ON
+                        await new Promise(resolve => setTimeout(resolve, 200));
+
+                        // 4. Try to turn off backlight using direct command
+                        // The library uses LIGHT_OFF = 0x07
+                        console.log('📺 LCD: Sending direct backlight off command');
+                        if (this.lcd.writeCMD) {
+                            this.lcd.writeCMD(0x07); // LIGHT_OFF
+                        }
+                        await new Promise(resolve => setTimeout(resolve, 200));
+
+                        // 5. As a last resort, try to force low backlight using command
+                        console.log('📺 LCD: Attempting to force backlight off');
+                        if (this.lcd._bus && this.lcd._address) {
+                            // Direct I2C write to turn off backlight (bit 3 controls backlight)
+                            this.lcd._bus.sendByte(this.lcd._address, 0x00, () => {});
+                        }
 
                         console.log('✅ LCD shutdown complete');
                     }
                 } catch (error) {
                     console.error('❌ LCD shutdown error:', error);
                 } finally {
+                    // Give a moment for I2C commands to complete
+                    await new Promise(resolve => setTimeout(resolve, 500));
                     console.log('👋 Greenhouse server shutdown complete');
                     process.exit(0);
                 }
             });
         });
     }
-
-
 
 }
 
