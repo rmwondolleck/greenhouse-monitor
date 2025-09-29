@@ -1,7 +1,6 @@
 {
   "name": "greenhouse-monitor",
   "version": "1.0.0",
-  "type": "module",
   "description": "Raspberry Pi Greenhouse Environmental Monitor with DHT11 sensor",
   "main": "dist/server.js",
   "scripts": {
