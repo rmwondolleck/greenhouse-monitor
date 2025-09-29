@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Thermometer, Droplets, Wifi, WifiOff, Leaf, Cpu, HardDrive, Activity, Sprout, Sun, CloudRain } from 'lucide-react';
+import { Thermometer, Droplets, Wifi, WifiOff, Leaf, Sun, CloudRain, Sprout, Cpu, HardDrive, Activity } from 'lucide-react';
+import HistoricalChart from './HistoricalChart';
 
 export default function GreenhouseMonitor() {
     const [data, setData] = useState({
@@ -15,6 +16,8 @@ export default function GreenhouseMonitor() {
         diskUsage: null,
         overheat: false
     });
+    const [historicalData, setHistoricalData] = useState([]);
+    const [chartHours, setChartHours] = useState(24);
     const [isConnected, setIsConnected] = useState(true);
     const [error, setError] = useState(null);
 
@@ -48,18 +51,42 @@ export default function GreenhouseMonitor() {
         }
     };
 
+    // Fetch historical data
+    const fetchHistoricalData = async (hours = chartHours) => {
+        try {
+            const response = await fetch(`/api/historical-data?hours=${hours}`);
+            const result = await response.json();
+
+            // Transform data for chart
+            const chartData = result.data.map(point => ({
+                time: new Date(point.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                timestamp: point.timestamp,
+                temperature: parseFloat(point.temperature),
+                humidity: parseFloat(point.humidity),
+                cpuTemp: point.cpuTemp ? parseFloat(point.cpuTemp) : null
+            }));
+
+            setHistoricalData(chartData);
+        } catch (err) {
+            console.error('Failed to fetch historical data:', err);
+        }
+    };
+
     useEffect(() => {
         fetchSensorData();
         fetchSystemStats();
+        fetchHistoricalData();
 
         const sensorInterval = setInterval(fetchSensorData, 5000);
-        const systemInterval = setInterval(fetchSystemStats, 30000); // Less frequent for system stats
+        const systemInterval = setInterval(fetchSystemStats, 30000);
+        const historyInterval = setInterval(() => fetchHistoricalData(), 60000); // Update chart every minute
 
         return () => {
             clearInterval(sensorInterval);
             clearInterval(systemInterval);
+            clearInterval(historyInterval);
         };
-    }, []);
+    }, [chartHours]);
 
     const formatTime = (isoString) => {
         if (!isoString) return '--:--';
@@ -141,7 +168,7 @@ export default function GreenhouseMonitor() {
                 )}
 
                 {/* Main Data Cards */}
-                <div className="grid grid-cols-2 gap-8 mb-8">
+                <div className="grid lg:grid-cols-2 gap-8 mb-8">
                     {/* Temperature Card */}
                     <div className={`bg-white rounded-3xl shadow-xl p-8 border-2 border-green-200 ${tempStatus?.bg || ''} transition-all duration-300`}>
                         <div className="flex items-center justify-between mb-6">
@@ -250,6 +277,14 @@ export default function GreenhouseMonitor() {
                         </div>
                     </div>
                 </div>
+
+                {/* Historical Data Chart */}
+                {/* Historical Data Chart */}
+                <HistoricalChart
+                    data={historicalData}
+                    selectedHours={chartHours}
+                    onTimeRangeChange={(hours) => setChartHours(hours)}
+                />
 
                 {/* Pi System Monitoring */}
                 <div className="bg-white rounded-3xl shadow-xl p-8 border-2 border-green-200 mb-8">

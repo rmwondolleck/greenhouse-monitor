@@ -494,6 +494,15 @@ class GreenhouseController {
                 // Clear LCD during sleep hours to prevent burn-in
                 this.lcd.text(0, 0, '                '); // 16 spaces
                 this.lcd.text(1, 0, '                '); // 16 spaces
+                console.log('📺 LCD: Sending direct backlight off command');
+                if (this.lcd.writeCMD) {
+                    this.lcd.writeCMD(0x07); // LIGHT_OFF
+                }
+
+                console.log('📺 LCD: Attempting to force backlight off');
+                if (this.lcd._bus && this.lcd._address) {
+                    this.lcd._bus.sendByte(this.lcd._address, 0x00, () => {});
+                }
                 return;
             }
 
