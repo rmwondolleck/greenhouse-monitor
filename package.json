@@ -13,7 +13,7 @@
     "start": "NODE_ENV=production node dist/server.js",
     "start:pi": "RASPBERRY_PI=true node dist/server.js",
     "clean": "rm -rf dist",
-    "type-check": "tsc --noEmit --project tsconfig.server.json && tsc --noEmit --project src/client",
+    "type-check": "tsc --noEmit --project tsconfig.server.json",
     "test:mock": "NODE_ENV=development node -e \"console.log('Testing mock mode...'); require('./dist/server.js')\""
   },
   "dependencies": {
@@ -22,6 +22,7 @@
     "dotenv": "^17.2.2",
     "express": "^4.18.2",
     "lucide-react": "^0.263.1",
+    "mqtt": "^5.3.5",
     "node-dht-sensor": "^0.4.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

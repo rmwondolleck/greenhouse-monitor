@@ -12,6 +12,9 @@ import fs from 'fs';
 
 import { execSync } from 'child_process';
 
+// MQTT Integration
+import { MQTTClient, MQTTQueue, loadMQTTConfig, getMQTTConfigSummary, MQTTConfig } from './mqtt';
+
 // Configuration
 const config = {
     dataDirectory: process.env.GREENHOUSE_DATA_DIR || './data',
@@ -21,7 +24,9 @@ const config = {
     cpuTempThreshold: parseInt(process.env.CPU_TEMP_THRESHOLD || '80'), // Celsius
     lcdSleepStart: parseInt(process.env.LCD_SLEEP_START || '21'), // 9 PM
     lcdSleepEnd: parseInt(process.env.LCD_SLEEP_END || '9'), // 9 AM
-    port: parseInt(process.env.PORT || '3000')
+    port: parseInt(process.env.PORT || '3000'),
+    // MQTT configuration loaded from environment
+    mqttConfig: loadMQTTConfig()
 };
 
 // Check if we're running on Raspberry Pi or in development
@@ -313,10 +318,32 @@ class GreenhouseController {
     private mockSensor: MockSensorData | null = null;
     private dataLogger: DataLogger;
     private lastDataSave: number = 0;
+    // MQTT properties
+    private mqttClient?: MQTTClient;
+    private mqttQueue?: MQTTQueue;
+    private mqttConfig: MQTTConfig;
 
     constructor() {
         this.app = express();
         this.dataLogger = new DataLogger();
+
+        // Initialize MQTT if enabled
+        this.mqttConfig = config.mqttConfig;
+        if (this.mqttConfig.enabled) {
+            console.log('📡 Initializing MQTT integration...');
+            try {
+                this.mqttQueue = new MQTTQueue(config.dataDirectory);
+                this.mqttClient = new MQTTClient(this.mqttConfig);
+                this.mqttClient.connect();
+                this.startMQTTWorker();
+                console.log('✅ MQTT integration initialized');
+            } catch (error) {
+                console.error('❌ MQTT initialization failed:', error);
+                console.error('   Continuing without MQTT integration');
+            }
+        } else {
+            console.log('📡 MQTT integration disabled');
+        }
 
         if (isDevelopment) {
             this.lcd = new MockLCD();
@@ -363,6 +390,19 @@ class GreenhouseController {
             futureTime.setMilliseconds(0);
 
             console.log(`     • ${futureTime.toLocaleTimeString()}`);
+        }
+
+        // Log MQTT configuration
+        if (this.mqttConfig.enabled) {
+            const mqttSummary = getMQTTConfigSummary(this.mqttConfig);
+            console.log('📡 MQTT Configuration:');
+            console.log(`   Enabled: ${mqttSummary.enabled}`);
+            console.log(`   Broker: ${mqttSummary.broker}`);
+            console.log(`   Username: ${mqttSummary.username}`);
+            console.log(`   Client ID: ${mqttSummary.clientId}`);
+            console.log(`   Base Topic: ${mqttSummary.baseTopic}`);
+        } else {
+            console.log('📡 MQTT: Disabled');
         }
     }
 
@@ -449,8 +489,45 @@ class GreenhouseController {
                 nextScheduledSave: nextSave.toISOString(),
                 lcdSleepHours: `${config.lcdSleepStart}:00 - ${config.lcdSleepEnd}:00`,
                 cpuTempThreshold: config.cpuTempThreshold,
-                mode: isDevelopment ? 'development' : 'production'
+                mode: isDevelopment ? 'development' : 'production',
+                mqtt: this.mqttConfig.enabled ? getMQTTConfigSummary(this.mqttConfig) : { enabled: false }
             });
+        });
+
+        // MQTT Status endpoint
+        this.app.get('/api/mqtt-status', (req, res) => {
+            if (!this.mqttConfig.enabled) {
+                res.json({
+                    enabled: false,
+                    message: 'MQTT integration is disabled. Set MQTT_ENABLED=true in .env to enable.'
+                });
+                return;
+            }
+
+            try {
+                const clientStats = this.mqttClient!.getStats();
+                const queueStats = this.mqttQueue!.getQueueStats();
+
+                res.json({
+                    enabled: true,
+                    connected: clientStats.connected,
+                    broker: `${this.mqttConfig.broker.host}:${this.mqttConfig.broker.port}`,
+                    queueStats: {
+                        total: queueStats.total,
+                        pending: queueStats.pending,
+                        delivered: queueStats.delivered
+                    },
+                    lastPublish: clientStats.lastPublish,
+                    totalSent: clientStats.totalSent,
+                    totalFailed: clientStats.totalFailed,
+                    lastError: clientStats.lastError
+                });
+            } catch (error) {
+                res.status(500).json({
+                    error: 'Failed to get MQTT status',
+                    enabled: true
+                });
+            }
         });
 
         // Health check endpoint
@@ -463,7 +540,10 @@ class GreenhouseController {
                 sensor_status: this.currentData ? 'connected' : 'disconnected',
                 cpu_temp: systemStats.cpuTemp,
                 overheat_warning: PiMonitor.checkCpuOverheat(config.cpuTempThreshold),
-                lcd_sleep: this.isLcdSleepTime()
+                lcd_sleep: this.isLcdSleepTime(),
+                mqtt_status: this.mqttConfig.enabled
+                    ? (this.mqttClient?.isConnected() ? 'connected' : 'disconnected')
+                    : 'disabled'
             });
         });
 
@@ -494,15 +574,7 @@ class GreenhouseController {
                 // Clear LCD during sleep hours to prevent burn-in
                 this.lcd.text(0, 0, '                '); // 16 spaces
                 this.lcd.text(1, 0, '                '); // 16 spaces
-                console.log('📺 LCD: Sending direct backlight off command');
-                if (this.lcd.writeCMD) {
-                    this.lcd.writeCMD(0x07); // LIGHT_OFF
-                }
 
-                console.log('📺 LCD: Attempting to force backlight off');
-                if (this.lcd._bus && this.lcd._address) {
-                    this.lcd._bus.sendByte(this.lcd._address, 0x00, () => {});
-                }
                 return;
             }
 
@@ -549,6 +621,50 @@ class GreenhouseController {
         }, 30000);
     }
 
+    private startMQTTWorker(): void {
+        if (!this.mqttClient || !this.mqttQueue) {
+            console.warn('⚠️  MQTT worker not started: client or queue not initialized');
+            return;
+        }
+
+        console.log('📡 Starting MQTT worker (processes queue every 10 seconds)...');
+
+        setInterval(async () => {
+            if (!this.mqttClient || !this.mqttQueue) return;
+
+            // Remove expired entries (older than 7 days)
+            this.mqttQueue.removeExpired();
+
+            // Process pending queue entries
+            const pending = this.mqttQueue.getNextPending();
+            if (pending && this.mqttClient.isConnected()) {
+                try {
+                    // Publish environmental data (temp + humidity)
+                    await this.mqttClient.publishEnvironmentalState(
+                        pending.temperature,
+                        pending.humidity,
+                        pending.timestamp
+                    );
+
+                    // Publish CPU temperature separately
+                    await this.mqttClient.publishCPUState(pending.cpuTemp);
+
+                    // Mark as delivered after successful publish
+                    this.mqttQueue.markDelivered(pending.id);
+
+                    // Log success (but not too verbose)
+                    const stats = this.mqttQueue.getQueueStats();
+                    if (stats.pending > 0) {
+                        console.log(`📤 MQTT published (${stats.pending} remaining in queue)`);
+                    }
+                } catch (error) {
+                    console.error('❌ MQTT publish failed:', error);
+                    // Entry stays in queue for retry
+                }
+            }
+        }, 10000); // Run every 10 seconds
+    }
+
     private readSensor(): void {
         if (isDevelopment) {
             // Mock sensor reading
@@ -569,6 +685,15 @@ class GreenhouseController {
             );
             this.lastDataSave = now;
             console.log(`💾 Data saved to ${this.dataLogger.getDataFilePath()}`);
+
+            // Enqueue data for MQTT publishing if enabled
+            if (this.mqttQueue) {
+                this.mqttQueue.enqueue(
+                    this.currentData.temperature,
+                    this.currentData.humidity,
+                    systemStats.cpuTemp
+                );
+            }
         }
     }
 
@@ -707,6 +832,17 @@ class GreenhouseController {
                 } catch (error) {
                     console.error('❌ LCD shutdown error:', error);
                 } finally {
+                    // Disconnect MQTT client gracefully
+                    if (this.mqttClient && this.mqttConfig.enabled) {
+                        console.log('📡 MQTT: Disconnecting client...');
+                        try {
+                            await this.mqttClient.disconnect();
+                            console.log('✅ MQTT disconnected');
+                        } catch (error) {
+                            console.error('❌ MQTT disconnect error:', error);
+                        }
+                    }
+
                     // Give a moment for I2C commands to complete
                     await new Promise(resolve => setTimeout(resolve, 500));
                     console.log('👋 Greenhouse server shutdown complete');

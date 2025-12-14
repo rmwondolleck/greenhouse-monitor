@@ -27,7 +27,9 @@
     "emitDecoratorMetadata": true
   },
   "include": [
-    "src/server.ts"
+    "src/server.ts",
+    "src/mqtt/**/*.ts",
+    "src/mqtt-test.ts"
   ],
   "exclude": [
     "src/client",
