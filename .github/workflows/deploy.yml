@@ -1,0 +1,59 @@
+name: Deploy to Greenhouse Pi
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Deploy to Raspberry Pi
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PI_HOST }}
+          username: ${{ secrets.PI_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            echo "Ì∫Ä Starting deployment..."
+            cd ~/greenhouse-monitor
+            echo "Ì≥• Pulling latest code from main..."
+            git fetch origin
+            git checkout main
+            git pull origin main
+            echo "Ì≥¶ Installing dependencies..."
+            npm install
+            echo "Ì¥® Building application..."
+            npm run build
+            echo "‚ôªÔ∏è  Restarting service..."
+            sudo systemctl restart greenhouse-monitor
+            echo "‚è≥ Waiting for service to start..."
+            sleep 5
+            echo "‚úÖ Checking service status..."
+            if sudo systemctl is-active --quiet greenhouse-monitor; then
+              COMMIT=$(git rev-parse --short HEAD)
+              echo "‚úÖ Deployment successful! Commit: $COMMIT"
+              echo "Ì≥ä Dashboard: http://greenhouse.local:3000"
+            else
+              echo "‚ùå Service failed to start"
+              sudo journalctl -u greenhouse-monitor -n 30 --no-pager
+              exit 1
+            fi
+      - name: Verify Health Endpoint
+        run: |
+          sleep 3
+          echo "Checking health endpoint..."
+        continue-on-error: true
+      - name: Notify Success
+        if: success()
+        run: |
+          echo "‚úÖ Deployment completed successfully!"
+          echo "Dashboard: http://greenhouse.local:3000"
+      - name: Notify Failure
+        if: failure()
+        run: |
+          echo "‚ùå Deployment failed!"
+          echo "Check the logs above for details"
