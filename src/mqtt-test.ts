@@ -8,7 +8,6 @@
  */
 
 import { MQTTClient, MQTTQueue, loadMQTTConfig, getMQTTConfigSummary } from './mqtt';
-import * as path from 'path';
 
 async function testMQTT() {
     console.log('========================================');
