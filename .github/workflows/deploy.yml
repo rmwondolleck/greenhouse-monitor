@@ -34,9 +34,11 @@ jobs:
 
       - name: Verify build artifacts
         run: |
-          test -f dist/server.js
-          test -f dist/index.html
-          echo "Build successful"
+          echo "Checking build artifacts..."
+          ls -la dist/
+          test -f dist/server.js || { echo "ERROR: dist/server.js not found"; exit 1; }
+          test -f dist/index.html || { echo "ERROR: dist/index.html not found"; exit 1; }
+          echo "✓ All build artifacts present"
 
       - name: Deployment Info
         run: |

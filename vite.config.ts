@@ -8,7 +8,7 @@ export default defineConfig({
     root: 'src/client',
     build: {
         outDir: '../../dist',
-        emptyOutDir: true,
+        emptyOutDir: false,  // Don't delete server build files
     },
     server: {
         port: 5173,
