@@ -68,7 +68,7 @@ export class MQTTQueue {
             fs.writeFileSync(this.queueFile, JSON.stringify(this.queue, null, 2), 'utf8');
         } catch (error) {
             console.error('❌ Error saving MQTT queue:', error);
-            throw error;
+            // Error is logged, but not thrown to avoid crashing the application
         }
     }
 
