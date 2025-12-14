@@ -137,25 +137,33 @@ export class MQTTClient {
             sw_version: '1.0.0',
         };
 
-        // Environmental sensor (temperature + humidity combined)
-        const envConfig: HADiscoveryConfig = {
-            name: 'Greenhouse Environment',
-            unique_id: 'greenhouse_env_sensor',
-            state_topic: `${this.config.baseTopic}/sensor/greenhouse_env/state`,
+        // Temperature sensor (separate)
+        const tempConfig: HADiscoveryConfig = {
+            name: 'Greenhouse Temperature',
+            unique_id: 'greenhouse_temperature',
+            state_topic: `${this.config.baseTopic}/sensor/greenhouse/temperature/state`,
             unit_of_measurement: '°F',
             device_class: 'temperature',
             state_class: 'measurement',
-            value_template: '{{ value_json.temperature }}',
-            json_attributes_topic: `${this.config.baseTopic}/sensor/greenhouse_env/state`,
-            json_attributes_template: "{{ {'humidity': value_json.humidity, 'timestamp': value_json.timestamp} | tojson }}",
+            device,
+        };
+
+        // Humidity sensor (separate)
+        const humidityConfig: HADiscoveryConfig = {
+            name: 'Greenhouse Humidity',
+            unique_id: 'greenhouse_humidity',
+            state_topic: `${this.config.baseTopic}/sensor/greenhouse/humidity/state`,
+            unit_of_measurement: '%',
+            device_class: 'humidity',
+            state_class: 'measurement',
             device,
         };
 
         // CPU Temperature sensor (separate)
         const cpuConfig: HADiscoveryConfig = {
             name: 'Greenhouse CPU Temperature',
-            unique_id: 'greenhouse_cpu_temp_sensor',
-            state_topic: `${this.config.baseTopic}/sensor/greenhouse_cpu/state`,
+            unique_id: 'greenhouse_cpu_temp',
+            state_topic: `${this.config.baseTopic}/sensor/greenhouse/cpu_temperature/state`,
             unit_of_measurement: '°C',
             device_class: 'temperature',
             state_class: 'measurement',
@@ -164,42 +172,49 @@ export class MQTTClient {
 
         // Publish discovery configs with retain flag
         await this.publishWithRetain(
-            `${this.config.baseTopic}/sensor/greenhouse_env/config`,
-            JSON.stringify(envConfig)
+            `${this.config.baseTopic}/sensor/greenhouse/temperature/config`,
+            JSON.stringify(tempConfig)
         );
 
         await this.publishWithRetain(
-            `${this.config.baseTopic}/sensor/greenhouse_cpu/config`,
+            `${this.config.baseTopic}/sensor/greenhouse/humidity/config`,
+            JSON.stringify(humidityConfig)
+        );
+
+        await this.publishWithRetain(
+            `${this.config.baseTopic}/sensor/greenhouse/cpu_temperature/config`,
             JSON.stringify(cpuConfig)
         );
 
-        console.log('✅ HomeAssistant Discovery configurations published');
+        console.log('✅ HomeAssistant Discovery configurations published (3 separate sensors)');
     }
 
     /**
-     * Publish environmental sensor state (temperature + humidity)
+     * Publish environmental sensor state (temperature + humidity as separate sensors)
      */
     public async publishEnvironmentalState(
         temperature: number,
         humidity: number,
         timestamp: string
     ): Promise<void> {
-        const state: EnvironmentalState = {
-            temperature,
-            humidity,
-            timestamp,
-        };
+        // Publish temperature to its own topic
+        const tempTopic = `${this.config.baseTopic}/sensor/greenhouse/temperature/state`;
+        await this.publishWithRetain(tempTopic, temperature.toFixed(1));
 
-        const topic = `${this.config.baseTopic}/sensor/greenhouse_env/state`;
-        await this.publishWithRetain(topic, JSON.stringify(state));
+        // Publish humidity to its own topic
+        const humidityTopic = `${this.config.baseTopic}/sensor/greenhouse/humidity/state`;
+        await this.publishWithRetain(humidityTopic, humidity.toFixed(1));
+
+        console.log(`📤 Published: Temp=${temperature.toFixed(1)}°F, Humidity=${humidity.toFixed(1)}%`);
     }
 
     /**
      * Publish CPU temperature state
      */
     public async publishCPUState(cpuTemp: number): Promise<void> {
-        const topic = `${this.config.baseTopic}/sensor/greenhouse_cpu/state`;
+        const topic = `${this.config.baseTopic}/sensor/greenhouse/cpu_temperature/state`;
         await this.publishWithRetain(topic, cpuTemp.toFixed(1));
+        console.log(`📤 Published: CPU Temp=${cpuTemp.toFixed(1)}°C`);
     }
 
     /**
@@ -269,4 +284,3 @@ export class MQTTClient {
         }
     }
 }
-
