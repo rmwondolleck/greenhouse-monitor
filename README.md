@@ -127,6 +127,46 @@ GitHub Actions workflows automatically assist with:
 - **Deployment**: Updates issues and notifies about deployment status after merges
 - **Label Management**: Maintains consistent labeling system across repository
 - **SDLC Automation**: Automatically processes issues through the complete Software Development Life Cycle using custom agents
+- **Continuous Integration**: Runs linting, type-checking, building, and testing on all PRs
+- **Continuous Deployment**: Automatically builds and deploys to Raspberry Pi on merge to main
+- **Code Quality**: Weekly code quality checks including security audits and dependency reviews
+- **Release Management**: Automated release package creation with versioning
+- **Health Monitoring**: Weekly repository health checks with automatic issue creation for problems
+
+#### CI/CD Workflows
+
+The repository includes comprehensive CI/CD automation:
+
+1. **🔄 Continuous Integration (CI)**: Every PR is automatically validated
+   - TypeScript type checking and linting
+   - Build verification (server + client)
+   - Test execution
+   - Security audits
+   - Artifact generation
+
+2. **🚀 Continuous Deployment (CD)**: Automatic deployment to production
+   - Full build pipeline on merge to main
+   - Deployment package creation
+   - Automatic Raspberry Pi deployment
+   - Issue notifications for deployed changes
+
+3. **📊 Code Quality**: Automated quality monitoring
+   - Weekly dependency and security scans
+   - Build size analysis
+   - Code metrics tracking
+   - Secret detection
+
+4. **📦 Release Management**: Version-based releases
+   - Triggered by version tags (v*.*.*)
+   - Complete release packages with deployment scripts
+   - Automated release notes generation
+   - SHA256 checksums for verification
+
+5. **🏥 Health Monitoring**: Proactive issue detection
+   - Weekly health checks
+   - Automatic issue creation for critical problems
+   - Build status validation
+   - Documentation completeness checks
 
 #### SDLC Automation Workflow
 

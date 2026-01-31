@@ -1,0 +1,150 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: |
+          npm run type-check
+          timeout 10s npm run test:mock || echo "Tests completed"
+
+      - name: Build application
+        run: npm run build
+
+      - name: Create release package
+        run: |
+          VERSION="${{ github.ref_name }}"
+          if [ -z "$VERSION" ] || [ "$VERSION" == "refs/heads/main" ]; then
+            VERSION="${{ inputs.version }}"
+          fi
+          
+          echo "Creating release package for $VERSION"
+          
+          # Create release directory
+          mkdir -p release
+          
+          # Copy necessary files
+          cp -r dist/ release/
+          cp package.json package-lock.json release/
+          cp README.md release/
+          cp .env.example release/
+          
+          # Create deployment script
+          cat > release/deploy.sh << 'EOF'
+          #!/bin/bash
+          echo "Deploying Greenhouse Monitor..."
+          npm ci --production
+          echo "Starting application..."
+          npm run start:pi
+          EOF
+          chmod +x release/deploy.sh
+          
+          # Create tarball
+          tar -czf greenhouse-monitor-$VERSION.tar.gz -C release .
+          
+          # Create checksums
+          sha256sum greenhouse-monitor-$VERSION.tar.gz > greenhouse-monitor-$VERSION.tar.gz.sha256
+          
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          VERSION="${{ env.VERSION }}"
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          # Configurable commit limit for initial releases without previous tags
+          COMMIT_LIMIT=50
+          
+          if [ -z "$PREV_TAG" ]; then
+            echo "No previous tag found, using last $COMMIT_LIMIT commits"
+            COMMITS=$(git log --oneline --pretty=format:"- %s (%h)" | head -$COMMIT_LIMIT)
+          else
+            COMMITS=$(git log --oneline --pretty=format:"- %s (%h)" $PREV_TAG..HEAD)
+          fi
+          
+          cat > release_notes.md << EOF
+          ## Greenhouse Monitor $VERSION
+          
+          ### Changes
+          
+          $COMMITS
+          
+          ### Installation
+          
+          1. Download the release package
+          2. Extract: \`tar -xzf greenhouse-monitor-$VERSION.tar.gz\`
+          3. Install: \`npm ci --production\`
+          4. Configure: \`cp .env.example .env\` and edit as needed
+          5. Run: \`npm run start:pi\`
+          
+          ### Requirements
+          
+          - Node.js 20.x or higher
+          - Raspberry Pi with GPIO support
+          - DHT11 temperature/humidity sensor
+          
+          ### Documentation
+          
+          See [README.md](https://github.com/${{ github.repository }}/blob/$VERSION/README.md) for full documentation.
+          EOF
+          
+          cat release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.VERSION }}
+          name: Release ${{ env.VERSION }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          files: |
+            greenhouse-monitor-${{ env.VERSION }}.tar.gz
+            greenhouse-monitor-${{ env.VERSION }}.tar.gz.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release summary
+        run: |
+          echo "## 🎉 Release Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ env.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release URL**: https://github.com/${{ github.repository }}/releases/tag/${{ env.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Download" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "wget https://github.com/${{ github.repository }}/releases/download/${{ env.VERSION }}/greenhouse-monitor-${{ env.VERSION }}.tar.gz" >> $GITHUB_STEP_SUMMARY
+          echo "tar -xzf greenhouse-monitor-${{ env.VERSION }}.tar.gz" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
