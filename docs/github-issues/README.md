@@ -80,11 +80,11 @@ Can be done in parallel with Week 1:
 
 ## Creating Issues in GitHub
 
-### ⭐ Option 1: GitHub Copilot Agent (Recommended)
+### ⭐ Use GitHub Copilot Agent
 
 **Use the @issue-creator agent directly in GitHub Copilot Chat**
 
-The native agent creates issues using GitHub's MCP (Model Context Protocol) - no scripts or command line needed!
+The native agent creates issues using GitHub's MCP (Model Context Protocol) - no scripts or setup needed!
 
 **How to use**:
 1. Open GitHub Copilot Chat (in VS Code, GitHub.com, or your IDE)
@@ -113,29 +113,7 @@ See [USAGE_EXAMPLE.md](USAGE_EXAMPLE.md) for a detailed walkthrough.
 
 ---
 
-### Option 2: CLI Scripts (For Automation)
-
-For CI/CD pipelines or users without GitHub Copilot:
-
-```bash
-# Preview first (recommended)
-npm run create-issues:dry-run
-
-# Create all issues
-npm run create-issues
-
-# Create a specific issue
-npm run create-issues -- --file ISSUE_01_local_storage_mqtt_reliability.md
-```
-
-**When to use CLI scripts:**
-- Automated workflows (CI/CD)
-- Batch operations in scripts
-- Users without GitHub Copilot access
-
----
-
-### Option 3: Manual Creation (For Review)
+### Manual Creation (For Review)
 1. Go to GitHub repository → Issues → New Issue
 2. Copy content from each markdown file
 3. Add appropriate labels and milestone

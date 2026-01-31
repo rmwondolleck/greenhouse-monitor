@@ -1,12 +1,50 @@
-# Migration Summary: NPM Scripts → GitHub Native Agent with MCP
+# Migration Complete: GitHub Native Agent Only
 
-## What Changed
+## Current State
 
-We've migrated from NPM script-based issue creation to **GitHub's native agent capabilities with MCP (Model Context Protocol)**.
+**NPM scripts have been removed.** This project now uses **GitHub Copilot's @issue-creator agent exclusively** for creating issues from markdown templates.
 
-## Before vs After
+## How to Create Issues
 
-### Before: NPM Scripts (Command Line)
+Use the @issue-creator agent in GitHub Copilot Chat:
+
+```
+@issue-creator show me available issues
+@issue-creator create issues #1 and #2
+```
+
+**That's it!** No setup, no scripts, no GITHUB_TOKEN configuration needed.
+
+## Migration History
+
+### Phase 1: Script-Based (Removed)
+Initially used NPM scripts with TypeScript:
+- `npm run create-issues`
+- `npm run create-issues:interactive`
+- Required GITHUB_TOKEN setup
+- Command-line only
+
+### Phase 2: Agent Migration (Previous)
+Migrated to GitHub Copilot agent while keeping scripts as fallback:
+- Agent as "recommended" approach
+- Scripts as "alternative" for automation
+
+### Phase 3: Agent Only (Current)
+**NPM scripts completely removed:**
+- Scripts deleted: `issue-creator.ts`, `issue-creator-interactive.ts`
+- NPM commands removed from `package.json`
+- All documentation updated to agent-only
+- No fallback scripts - agent is the only way
+
+## Why Scripts Were Removed
+
+1. **No longer needed** - Agent provides superior experience
+2. **Maintenance burden** - Extra code to maintain
+3. **User confusion** - Two ways to do the same thing
+4. **GitHub Actions** - Can use GitHub Actions for automation if needed
+5. **Native integration** - Agent uses GitHub's own MCP protocol
+
+## Before: NPM Scripts (REMOVED)
 ```bash
 # Setup required
 echo "GITHUB_TOKEN=your_token" >> .env
@@ -14,11 +52,6 @@ echo "GITHUB_TOKEN=your_token" >> .env
 # Run commands
 npm run create-issues:interactive:dry-run
 npm run create-issues:interactive
-
-# Follow prompts...
-# Enter start date...
-# Enter assignee...
-# Enter notes...
 ```
 
 **Problems:**
@@ -28,7 +61,7 @@ npm run create-issues:interactive
 - ❌ No conversational context
 - ❌ Fixed script behavior
 
-### After: GitHub Copilot Agent (Chat)
+## After: GitHub Copilot Agent (Current)
 ```
 You: @issue-creator show me available issues
 

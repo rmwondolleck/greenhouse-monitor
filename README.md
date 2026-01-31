@@ -129,9 +129,9 @@ GitHub Actions workflows automatically assist with:
 
 ### Issue Creator Agent
 
-**🎯 Recommended: Use GitHub Copilot Chat with the @issue-creator agent**
+**🎯 Use GitHub Copilot Chat with the @issue-creator agent**
 
-The `@issue-creator` agent directly creates GitHub issues from markdown templates using GitHub's native MCP tools - no scripts needed!
+The `@issue-creator` agent directly creates GitHub issues from markdown templates using GitHub's native MCP tools.
 
 **In GitHub Copilot Chat**:
 ```
@@ -150,28 +150,11 @@ The `@issue-creator` agent directly creates GitHub issues from markdown template
 - ✅ Explain dependencies and implementation order
 
 **Why use the agent?**
-- 🚀 **Native GitHub integration** - No scripts to run
+- 🚀 **Native GitHub integration** - No setup required
 - 💬 **Interactive** - Ask questions, customize before creating
 - 🎯 **Selective** - Create specific issues or all at once
 - 🔍 **Smart** - Checks for duplicates, explains priorities
 - ⚡ **Instant** - Creates issues in real-time via chat
-
-**Alternative: CLI Scripts (for automation/CI/CD)**
-
-For automated workflows or if you don't have GitHub Copilot:
-
-```bash
-# Preview what will be created
-npm run create-issues:dry-run
-
-# Create all issues
-npm run create-issues
-
-# Create specific issue
-npm run create-issues -- --file=ISSUE_01_local_storage_mqtt_reliability.md
-```
-
-**Note**: The agent provides a superior interactive experience. Use CLI scripts only for automation or batch operations.
 
 **Features:**
 - ✅ **Native GitHub integration** via MCP (Model Context Protocol)
