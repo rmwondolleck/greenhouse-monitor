@@ -1,0 +1,45 @@
+name: Workflow Validation
+
+'on':
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-workflows:
+    name: Validate Workflow Files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install pyyaml yamllint
+
+      - name: Validate workflow syntax
+        run: |
+          python3 scripts/validate-workflows.py .github/workflows/ --verbose
+
+      - name: Run yamllint
+        run: |
+          yamllint .github/workflows/ || true
+
+      - name: Validation summary
+        if: always()
+        run: |
+          echo "✓ Workflow validation completed"
+          echo "Check the logs above for any issues"

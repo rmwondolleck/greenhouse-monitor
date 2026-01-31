@@ -1,6 +1,6 @@
 name: Issue Triage and Labeling
 
-on:
+'on':
   issues:
     types: [opened, edited]
 

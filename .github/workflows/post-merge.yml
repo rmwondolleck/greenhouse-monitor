@@ -1,6 +1,6 @@
 name: Post-Merge Actions
 
-on:
+'on':
   push:
     branches: [main]
 

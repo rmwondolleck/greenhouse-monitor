@@ -1,0 +1,40 @@
+---
+extends: default
+
+rules:
+  # Relax line length for workflows (they often have long commands)
+  line-length:
+    max: 120
+    level: warning
+
+  # Allow truthy values (on: true/false is common in GitHub Actions)
+  truthy:
+    allowed-values: ['true', 'false', 'on', 'off', 'yes', 'no']
+    level: warning
+
+  # Document start is not always necessary
+  document-start:
+    present: false
+
+  # Allow inline mappings (common in workflow syntax)
+  braces:
+    max-spaces-inside: 1
+
+  brackets:
+    max-spaces-inside: 1
+
+  # Comments don't need to be strictly formatted
+  comments:
+    min-spaces-from-content: 1
+
+  # Allow some trailing spaces in multiline strings
+  trailing-spaces: enable
+
+  # Allow reasonable blank lines
+  empty-lines:
+    max: 2
+
+  # Indentation
+  indentation:
+    spaces: 2
+    indent-sequences: true

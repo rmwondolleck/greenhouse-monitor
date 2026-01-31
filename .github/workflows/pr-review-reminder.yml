@@ -1,6 +1,6 @@
 name: PR Review Reminder
 
-on:
+'on':
   pull_request:
     types: [opened, synchronize]
 
@@ -28,31 +28,26 @@ jobs:
               return;
             }
 
-            const message = `## 🔍 Code Review Checklist
-
-Before merging this PR, please use the code review agent to ensure quality:
-
-\`\`\`
-@code-review Review the changes in this PR
-\`\`\`
-
-### Review Focus Areas
-- [ ] Correctness and functionality
-- [ ] TypeScript type safety
-- [ ] Error handling
-- [ ] Performance and resource usage
-- [ ] Security considerations
-- [ ] Hardware integration (if applicable)
-- [ ] Code quality and maintainability
-
-### Testing
-- [ ] Tested in development mode (mocked hardware)
-- [ ] Tested on Raspberry Pi (if hardware changes)
-- [ ] Build passes successfully
-- [ ] Type checks pass
-
----
-📚 **Reference**: See \`.github/agents/code-review.md\` for detailed review guidelines.`;
+            const message = "## 🔍 Code Review Checklist\n\n" +
+              "Before merging this PR, please use the code review agent to ensure quality:\n\n" +
+              "```\n" +
+              "Use code review agent to review the changes in this PR\n" +
+              "```\n\n" +
+              "### Review Focus Areas\n" +
+              "- [ ] Correctness and functionality\n" +
+              "- [ ] TypeScript type safety\n" +
+              "- [ ] Error handling\n" +
+              "- [ ] Performance and resource usage\n" +
+              "- [ ] Security considerations\n" +
+              "- [ ] Hardware integration (if applicable)\n" +
+              "- [ ] Code quality and maintainability\n\n" +
+              "### Testing\n" +
+              "- [ ] Tested in development mode (mocked hardware)\n" +
+              "- [ ] Tested on Raspberry Pi (if hardware changes)\n" +
+              "- [ ] Build passes successfully\n" +
+              "- [ ] Type checks pass\n\n" +
+              "---\n" +
+              "📚 **Reference**: See `.github/agents/code-review.md` for detailed review guidelines.";
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,

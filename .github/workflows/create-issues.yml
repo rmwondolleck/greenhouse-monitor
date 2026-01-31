@@ -1,6 +1,6 @@
 name: Create Issues from Templates
 
-on:
+'on':
   workflow_dispatch:
     inputs:
       mode:
