@@ -126,6 +126,29 @@ GitHub Actions workflows automatically assist with:
 - **PR Reviews**: Adds review checklists and reminders to use code review agent
 - **Deployment**: Updates issues and notifies about deployment status after merges
 - **Label Management**: Maintains consistent labeling system across repository
+- **SDLC Automation**: Automatically processes issues through the complete Software Development Life Cycle using custom agents
+
+#### SDLC Automation Workflow
+
+The **SDLC Automation** workflow provides an automated process that:
+
+1. 🧠 **Brainstorming Phase**: Analyzes issues and creates implementation plans
+2. 💻 **Implementation Phase**: Sets up feature branches with scaffolding and guidance
+3. 🔍 **Code Review Phase**: Provides guidance for using the @code-review agent
+4. 📝 **PR Creation**: Creates draft PRs with checklists and links to original issues
+
+**Quick Start:**
+```
+GitHub Actions → SDLC Automation - Issue Resolution → Run workflow
+- Set dry_run: true for preview
+- Set dry_run: false to create PRs
+- Specify issue numbers or process all open issues
+```
+
+**Documentation:**
+- [SDLC Automation Guide](.github/SDLC_AUTOMATION.md) - Comprehensive documentation
+- [Getting Started](.github/SDLC_GETTING_STARTED.md) - Step-by-step tutorial
+- [Workflow Diagram](.github/WORKFLOW_DIAGRAM.md) - Visual workflow overview
 
 ### Issue Creator Agent
 
