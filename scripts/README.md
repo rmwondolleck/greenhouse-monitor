@@ -2,6 +2,34 @@
 
 This directory contains utility scripts for the Greenhouse Monitor project.
 
+## Workflow Validation
+
+### validate-workflows.py
+Validates GitHub Actions workflow files for syntax and structure.
+
+**Usage:**
+```bash
+# Validate a specific workflow
+python3 scripts/validate-workflows.py .github/workflows/your-workflow.yml
+
+# Validate all workflows
+python3 scripts/validate-workflows.py .github/workflows/
+
+# With verbose output
+python3 scripts/validate-workflows.py .github/workflows/ --verbose
+```
+
+**What it validates:**
+- ✅ YAML syntax correctness
+- ✅ GitHub Actions workflow structure
+- ✅ Required fields (name, on, jobs)
+- ✅ Job structure (runs-on, steps)
+
+**Related:**
+- Agent documentation: `.github/agents/workflow-validator.agent.md`
+- CI workflow: `.github/workflows/workflow-validation.yml`
+- YAML lint config: `.yamllint`
+
 ## Issue Creation
 
 **⚠️ DEPRECATED: NPM Scripts Removed**
