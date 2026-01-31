@@ -19,6 +19,8 @@ on:
         default: 1
   schedule:
     # Run daily at 2 AM UTC to check for open issues
+    # Note: Scheduled runs use default values (dry_run: true, max_issues: 1)
+    # This means scheduled runs will only analyze and comment, NOT create PRs
     - cron: '0 2 * * *'
 
 permissions:
@@ -122,7 +124,10 @@ jobs:
       matrix:
         issue: ${{ fromJson(needs.analyze-issues.outputs.issues_to_process) }}
       fail-fast: false
-      max-parallel: 1  # Process issues one at a time to avoid conflicts
+      # Process issues one at a time to avoid git conflicts
+      # Performance: ~2-3 min per issue (API calls + git operations)
+      # For bulk processing, run multiple workflow instances instead
+      max-parallel: 1
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -360,7 +365,7 @@ jobs:
                     `- [ ] Tests pass\n` +
                     `- [ ] Documentation updated (if needed)\n` +
                     `- [ ] Ready for human review`,
-              draft: true  // Create as draft PR
+              draft: true  # Create as draft PR
             });
             
             console.log(`✅ Created draft PR #${pr.data.number}`);
