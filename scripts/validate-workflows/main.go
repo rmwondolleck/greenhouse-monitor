@@ -35,70 +35,70 @@ func (v *WorkflowValidator) log(message string) {
 }
 
 // ValidateYAMLSyntax validates YAML syntax
-func (v *WorkflowValidator) ValidateYAMLSyntax(filepath string) bool {
-	data, err := os.ReadFile(filepath)
+func (v *WorkflowValidator) ValidateYAMLSyntax(filePath string) bool {
+	data, err := os.ReadFile(filePath)
 	if err != nil {
-		v.errors = append(v.errors, fmt.Sprintf("✗ %s: Error reading file: %v", filepath, err))
+		v.errors = append(v.errors, fmt.Sprintf("✗ %s: Error reading file: %v", filePath, err))
 		return false
 	}
 
 	var content interface{}
 	err = yaml.Unmarshal(data, &content)
 	if err != nil {
-		v.errors = append(v.errors, fmt.Sprintf("✗ %s: YAML syntax error: %v", filepath, err))
+		v.errors = append(v.errors, fmt.Sprintf("✗ %s: YAML syntax error: %v", filePath, err))
 		return false
 	}
 
-	v.log(fmt.Sprintf("✓ %s: Valid YAML syntax", filepath))
+	v.log(fmt.Sprintf("✓ %s: Valid YAML syntax", filePath))
 	return true
 }
 
 // ValidateWorkflowStructure validates GitHub Actions workflow structure
-func (v *WorkflowValidator) ValidateWorkflowStructure(filepath string) bool {
-	data, err := os.ReadFile(filepath)
+func (v *WorkflowValidator) ValidateWorkflowStructure(filePath string) bool {
+	data, err := os.ReadFile(filePath)
 	if err != nil {
-		v.errors = append(v.errors, fmt.Sprintf("✗ %s: Error reading file: %v", filepath, err))
+		v.errors = append(v.errors, fmt.Sprintf("✗ %s: Error reading file: %v", filePath, err))
 		return false
 	}
 
 	var workflow map[string]interface{}
 	err = yaml.Unmarshal(data, &workflow)
 	if err != nil {
-		v.errors = append(v.errors, fmt.Sprintf("✗ %s: Error parsing YAML: %v", filepath, err))
+		v.errors = append(v.errors, fmt.Sprintf("✗ %s: Error parsing YAML: %v", filePath, err))
 		return false
 	}
 
 	// Check if workflow is a map
 	if workflow == nil {
-		v.errors = append(v.errors, fmt.Sprintf("✗ %s: Workflow must be a YAML mapping", filepath))
+		v.errors = append(v.errors, fmt.Sprintf("✗ %s: Workflow must be a YAML mapping", filePath))
 		return false
 	}
 
 	// Check required top-level fields
 	if _, ok := workflow["name"]; !ok {
-		v.warnings = append(v.warnings, fmt.Sprintf("⚠ %s: Missing 'name' field (recommended)", filepath))
+		v.warnings = append(v.warnings, fmt.Sprintf("⚠ %s: Missing 'name' field (recommended)", filePath))
 	}
 
 	if _, ok := workflow["on"]; !ok {
-		v.errors = append(v.errors, fmt.Sprintf("✗ %s: Missing required 'on' field", filepath))
+		v.errors = append(v.errors, fmt.Sprintf("✗ %s: Missing required 'on' field", filePath))
 		return false
 	}
 
 	jobsInterface, ok := workflow["jobs"]
 	if !ok {
-		v.errors = append(v.errors, fmt.Sprintf("✗ %s: Missing required 'jobs' field", filepath))
+		v.errors = append(v.errors, fmt.Sprintf("✗ %s: Missing required 'jobs' field", filePath))
 		return false
 	}
 
 	// Validate jobs structure
 	jobs, ok := jobsInterface.(map[string]interface{})
 	if !ok {
-		v.errors = append(v.errors, fmt.Sprintf("✗ %s: 'jobs' must be a mapping", filepath))
+		v.errors = append(v.errors, fmt.Sprintf("✗ %s: 'jobs' must be a mapping", filePath))
 		return false
 	}
 
 	if len(jobs) == 0 {
-		v.errors = append(v.errors, fmt.Sprintf("✗ %s: 'jobs' must contain at least one job", filepath))
+		v.errors = append(v.errors, fmt.Sprintf("✗ %s: 'jobs' must contain at least one job", filePath))
 		return false
 	}
 
@@ -106,59 +106,59 @@ func (v *WorkflowValidator) ValidateWorkflowStructure(filepath string) bool {
 	for jobName, jobInterface := range jobs {
 		job, ok := jobInterface.(map[string]interface{})
 		if !ok {
-			v.errors = append(v.errors, fmt.Sprintf("✗ %s: Job '%s' must be a mapping", filepath, jobName))
+			v.errors = append(v.errors, fmt.Sprintf("✗ %s: Job '%s' must be a mapping", filePath, jobName))
 			return false
 		}
 
 		if _, ok := job["runs-on"]; !ok {
-			v.errors = append(v.errors, fmt.Sprintf("✗ %s: Job '%s' missing required 'runs-on' field", filepath, jobName))
+			v.errors = append(v.errors, fmt.Sprintf("✗ %s: Job '%s' missing required 'runs-on' field", filePath, jobName))
 			return false
 		}
 
 		if _, ok := job["steps"]; !ok {
-			v.errors = append(v.errors, fmt.Sprintf("✗ %s: Job '%s' missing required 'steps' field", filepath, jobName))
+			v.errors = append(v.errors, fmt.Sprintf("✗ %s: Job '%s' missing required 'steps' field", filePath, jobName))
 			return false
 		}
 
 		// Check that steps is a list
 		steps, ok := job["steps"].([]interface{})
 		if !ok {
-			v.errors = append(v.errors, fmt.Sprintf("✗ %s: Job '%s' 'steps' must be a list", filepath, jobName))
+			v.errors = append(v.errors, fmt.Sprintf("✗ %s: Job '%s' 'steps' must be a list", filePath, jobName))
 			return false
 		}
 
 		if len(steps) == 0 {
-			v.warnings = append(v.warnings, fmt.Sprintf("⚠ %s: Job '%s' has no steps", filepath, jobName))
+			v.warnings = append(v.warnings, fmt.Sprintf("⚠ %s: Job '%s' has no steps", filePath, jobName))
 		}
 	}
 
-	v.log(fmt.Sprintf("✓ %s: Valid workflow structure", filepath))
+	v.log(fmt.Sprintf("✓ %s: Valid workflow structure", filePath))
 	return true
 }
 
 // ValidateFile validates a single workflow file
-func (v *WorkflowValidator) ValidateFile(filepath string) bool {
-	v.log(fmt.Sprintf("\nValidating %s...", filepath))
+func (v *WorkflowValidator) ValidateFile(filePath string) bool {
+	v.log(fmt.Sprintf("\nValidating %s...", filePath))
 
 	// Check file exists
-	if _, err := os.Stat(filepath); os.IsNotExist(err) {
-		v.errors = append(v.errors, fmt.Sprintf("✗ %s: File does not exist", filepath))
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		v.errors = append(v.errors, fmt.Sprintf("✗ %s: File does not exist", filePath))
 		return false
 	}
 
 	// Check file extension
-	ext := strings.ToLower(filepath[len(filepath)-4:])
-	if ext != ".yml" && ext != "yaml" {
-		v.warnings = append(v.warnings, fmt.Sprintf("⚠ %s: File extension should be .yml or .yaml", filepath))
+	ext := strings.ToLower(filepath.Ext(filePath))
+	if ext != ".yml" && ext != ".yaml" {
+		v.warnings = append(v.warnings, fmt.Sprintf("⚠ %s: File extension should be .yml or .yaml", filePath))
 	}
 
 	// Validate syntax
-	if !v.ValidateYAMLSyntax(filepath) {
+	if !v.ValidateYAMLSyntax(filePath) {
 		return false
 	}
 
 	// Validate structure
-	if !v.ValidateWorkflowStructure(filepath) {
+	if !v.ValidateWorkflowStructure(filePath) {
 		return false
 	}
 
