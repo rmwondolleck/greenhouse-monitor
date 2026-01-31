@@ -8,6 +8,7 @@
  * 
  * Usage:
  *   npm run create-issues [--dry-run] [--file ISSUE_01.md]
+ *   npm run create-issues [--dry-run] [--file=ISSUE_01.md]
  * 
  * Environment Variables:
  *   GITHUB_TOKEN - GitHub Personal Access Token with repo scope
@@ -32,7 +33,18 @@ const ISSUES_DIR = path.join(process.cwd(), 'docs', 'github-issues');
 // Parse command line arguments
 const args = process.argv.slice(2);
 const isDryRun = args.includes('--dry-run');
-const specificFile = args.find(arg => arg.startsWith('--file='))?.split('=')[1];
+// Support both --file=FILENAME and --file FILENAME formats
+const specificFile = (() => {
+  const fileArgWithEquals = args.find(arg => arg.startsWith('--file='));
+  if (fileArgWithEquals) {
+    return fileArgWithEquals.split('=')[1];
+  }
+  const fileArgIndex = args.indexOf('--file');
+  if (fileArgIndex !== -1 && args[fileArgIndex + 1]) {
+    return args[fileArgIndex + 1];
+  }
+  return undefined;
+})();
 
 interface IssueData {
   title: string;

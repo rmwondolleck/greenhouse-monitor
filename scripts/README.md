@@ -46,10 +46,12 @@ npm run create-issues
 
 #### Create a specific issue
 ```bash
-# Dry run for a specific file
+# Dry run for a specific file (both formats supported)
+npm run create-issues -- --dry-run --file ISSUE_01_local_storage_mqtt_reliability.md
 npm run create-issues -- --dry-run --file=ISSUE_01_local_storage_mqtt_reliability.md
 
-# Create a specific issue
+# Create a specific issue (both formats supported)
+npm run create-issues -- --file ISSUE_01_local_storage_mqtt_reliability.md
 npm run create-issues -- --file=ISSUE_01_local_storage_mqtt_reliability.md
 ```
 

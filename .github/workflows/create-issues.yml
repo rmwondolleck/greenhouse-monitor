@@ -39,13 +39,19 @@ jobs:
         run: npm ci
 
       - name: Dry Run - Preview Issues
-        if: inputs.mode == 'dry-run'
+        if: inputs.mode == 'dry-run' && inputs.specific_file == ''
         run: npm run create-issues:dry-run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Dry Run - Preview Specific Issue
+        if: inputs.mode == 'dry-run' && inputs.specific_file != ''
+        run: npm run create-issues -- --dry-run --file ${{ inputs.specific_file }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create All Issues
-        if: inputs.mode == 'create-all'
+        if: inputs.mode == 'create-all' && inputs.specific_file == ''
         run: npm run create-issues
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -133,8 +139,8 @@ jobs:
             }
 
       - name: Create Specific Issue
-        if: inputs.specific_file != ''
-        run: npm run create-issues -- --file=${{ inputs.specific_file }}
+        if: inputs.specific_file != '' && inputs.mode != 'dry-run'
+        run: npm run create-issues -- --file ${{ inputs.specific_file }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
