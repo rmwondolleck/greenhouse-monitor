@@ -1,0 +1,101 @@
+name: Deploy to Raspberry Pi
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Build application
+        run: npm run build
+
+      - name: Backup current version
+        run: |
+          DEPLOY_DIR="/home/rwondoll/app/greenhouse-monitor"
+          if [ -d "$DEPLOY_DIR/dist.backup" ]; then
+            rm -rf "$DEPLOY_DIR/dist.backup"
+          fi
+          if [ -d "$DEPLOY_DIR/dist" ]; then
+            cp -r "$DEPLOY_DIR/dist" "$DEPLOY_DIR/dist.backup"
+            echo "✅ Backup created"
+          fi
+
+      - name: Stop service gracefully
+        run: sudo systemctl stop greenhouse-monitor
+        continue-on-error: true
+
+      - name: Wait for graceful shutdown
+        run: sleep 5
+
+      - name: Deploy files
+        run: |
+          DEPLOY_DIR="/home/rwondoll/app/greenhouse-monitor"
+          rm -rf "$DEPLOY_DIR/dist"
+          cp -r dist "$DEPLOY_DIR/"
+          cp package*.json "$DEPLOY_DIR/"
+          echo "✅ Files deployed"
+
+      - name: Install production dependencies
+        run: |
+          cd /home/rwondoll/app/greenhouse-monitor
+          npm ci --production
+
+      - name: Start service
+        run: sudo systemctl start greenhouse-monitor
+
+      - name: Wait for startup
+        run: sleep 5
+
+      - name: Verify deployment
+        run: |
+          if sudo systemctl is-active --quiet greenhouse-monitor; then
+            echo "✅ Deployment successful!"
+            COMMIT=$(git rev-parse --short HEAD)
+            echo "Deployed commit: $COMMIT"
+            echo "Service status:"
+            sudo systemctl status greenhouse-monitor --no-pager -l
+          else
+            echo "❌ Service failed to start"
+            echo "Checking logs..."
+            sudo journalctl -u greenhouse-monitor -n 50 --no-pager
+            exit 1
+          fi
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "⚠️ Deployment failed - Rolling back to previous version..."
+          DEPLOY_DIR="/home/rwondoll/app/greenhouse-monitor"
+          sudo systemctl stop greenhouse-monitor
+          rm -rf "$DEPLOY_DIR/dist"
+          if [ -d "$DEPLOY_DIR/dist.backup" ]; then
+            mv "$DEPLOY_DIR/dist.backup" "$DEPLOY_DIR/dist"
+            echo "✅ Restored backup"
+          fi
+          sudo systemctl start greenhouse-monitor
+          sleep 3
+          if sudo systemctl is-active --quiet greenhouse-monitor; then
+            echo "✅ Rollback successful - previous version restored"
+          else
+            echo "❌ Rollback failed - manual intervention required"
+          fi
+
