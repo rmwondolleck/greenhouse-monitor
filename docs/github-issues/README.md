@@ -80,52 +80,68 @@ Can be done in parallel with Week 1:
 
 ## Creating Issues in GitHub
 
-To create these issues in your repository:
+### ⭐ Option 1: GitHub Copilot Agent (Recommended)
 
-### Option 1: Interactive Script (✨ Recommended)
+**Use the @issue-creator agent directly in GitHub Copilot Chat**
 
-The interactive script guides you through creating all issues with a tracking issue:
+The native agent creates issues using GitHub's MCP (Model Context Protocol) - no scripts or command line needed!
+
+**How to use**:
+1. Open GitHub Copilot Chat (in VS Code, GitHub.com, or your IDE)
+2. Type: `@issue-creator review all issue templates`
+3. The agent will show you all available issues with priorities
+4. Ask it to create issues: `@issue-creator create all high-priority issues`
+
+**Example commands**:
+```
+@issue-creator show me all available issues
+@issue-creator create issue #1 about MQTT reliability
+@issue-creator create all Phase 1 issues
+@issue-creator which issues should I create first?
+@issue-creator create issues #1, #2, and #3
+```
+
+**Benefits:**
+- ✅ **Native GitHub integration** - Creates issues directly via MCP
+- ✅ **Interactive** - Ask questions, customize before creating
+- ✅ **Smart duplicate detection** - Checks existing issues first
+- ✅ **Explains dependencies** - Shows you what to build first
+- ✅ **Real-time** - Creates issues immediately in the chat
+- ✅ **No setup required** - Just use Copilot Chat
+
+See [USAGE_EXAMPLE.md](USAGE_EXAMPLE.md) for a detailed walkthrough.
+
+---
+
+### Option 2: CLI Scripts (For Automation)
+
+For CI/CD pipelines or users without GitHub Copilot:
 
 ```bash
 # Preview first (recommended)
-npm run create-issues:interactive:dry-run
+npm run create-issues:dry-run
 
-# Create all issues with tracking issue
-npm run create-issues:interactive
-```
-
-See [USAGE_EXAMPLE.md](USAGE_EXAMPLE.md) for a detailed walkthrough with screenshots and examples.
-
-**Benefits:**
-- ✅ Creates all 7 sub-issues + 1 tracking issue
-- ✅ Automatically links sub-issues in tracking issue
-- ✅ Prompts for custom context (start date, assignee, notes)
-- ✅ Shows priorities and time estimates
-- ✅ Prevents duplicates
-- ✅ Includes dry-run mode
-
-### Option 2: Batch Script
-
-For non-interactive batch operations:
-
-```bash
-# Create all issues (no tracking issue, no custom context)
+# Create all issues
 npm run create-issues
 
 # Create a specific issue
 npm run create-issues -- --file ISSUE_01_local_storage_mqtt_reliability.md
-
-# Dry run
-npm run create-issues:dry-run
 ```
 
-### Option 3: Manually (For review)
+**When to use CLI scripts:**
+- Automated workflows (CI/CD)
+- Batch operations in scripts
+- Users without GitHub Copilot access
+
+---
+
+### Option 3: Manual Creation (For Review)
 1. Go to GitHub repository → Issues → New Issue
 2. Copy content from each markdown file
 3. Add appropriate labels and milestone
 4. Assign to yourself
 
-### Option 4: GitHub CLI
+This is useful when you want to review the exact content before creating.
 ```bash
 # Install GitHub CLI if needed
 # brew install gh  (macOS)

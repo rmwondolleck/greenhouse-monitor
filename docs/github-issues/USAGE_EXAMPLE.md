@@ -1,26 +1,302 @@
 # Issue Creator - Usage Examples
 
-This document shows how to use the issue creator tools to create GitHub issues from the templates in this directory.
+This document shows how to create GitHub issues from the templates in this directory.
 
-## Quick Start
+## 🎯 Recommended: GitHub Copilot Agent
 
-The **recommended approach** is to use the interactive mode, which guides you through the process:
+**The best way to create issues is using the @issue-creator agent in GitHub Copilot Chat.**
 
-```bash
-# Preview what will be created (dry run)
-npm run create-issues:interactive:dry-run
+### Quick Start with Agent
 
-# Create all issues with tracking issue
-npm run create-issues:interactive
+1. **Open GitHub Copilot Chat** (VS Code, GitHub.com, or your IDE)
+2. **Type**: `@issue-creator review all issue templates`
+3. **The agent shows** all 7 issues with priorities and time estimates
+4. **Ask to create**: `@issue-creator create all high-priority issues`
+
+That's it! The agent creates issues directly using GitHub's native MCP tools.
+
+---
+
+## Agent Walkthrough
+
+### Step 1: Review Available Issues
+
+**You type in Copilot Chat**:
+```
+@issue-creator show me all available issues and their priorities
 ```
 
-## Interactive Mode Walkthrough
+**Agent responds with**:
+```
+📋 Issue Templates Found (7 total):
 
-When you run `npm run create-issues:interactive`, here's what happens:
+High Priority (Phase 1-3):
+1. Issue #1: Extend Local Storage and Improve MQTT Reliability
+   ⏱️  2-3h | 🏷️  enhancement, mqtt, priority-high, phase-1
 
-### Step 1: Issue Summary Display
+2. Issue #2: HomeAssistant MQTT Integration & Alerts
+   ⏱️  1-2h | 🏷️  enhancement, homeassistant, monitoring, priority-high
 
-The script will show you all available issue templates with their key information:
+3. Issue #3: Deploy MariaDB on Kubernetes
+   ⏱️  2-3h | 🏷️  infrastructure, kubernetes, database, priority-high
+
+[... and 4 more ...]
+
+Would you like me to create any of these issues?
+```
+
+### Step 2: Ask Questions
+
+**You**: `@issue-creator which issues should I do first?`
+
+**Agent explains**:
+```
+I recommend starting with Phase 1 issues in this order:
+
+1. Issue #1 (High Priority) - Enhanced Local Storage & MQTT
+   - No dependencies, provides foundation for reliability
+   - Time: 2-3 hours
+
+2. Issue #2 (High Priority) - HomeAssistant Integration
+   - Depends on #1 for MQTT improvements
+   - Time: 1-2 hours
+
+These give you immediate value: better resilience and monitoring!
+```
+
+### Step 3: Create Issues
+
+**You**: `@issue-creator create issues #1 and #2`
+
+**Agent responds**:
+```
+Creating issues...
+
+✅ Issue #1 created successfully!
+   Title: Issue #1: Extend Local Storage and Improve MQTT Reliability
+   Labels: enhancement, mqtt, priority-high, phase-1
+   Link: https://github.com/rmwondolleck/greenhouse-monitor/issues/123
+
+✅ Issue #2 created successfully!
+   Title: Issue #2: HomeAssistant MQTT Integration & Alerts
+   Labels: enhancement, homeassistant, monitoring, priority-high, phase-2
+   Link: https://github.com/rmwondolleck/greenhouse-monitor/issues/124
+
+Done! Created 2 issues. You can start with #1 first.
+```
+
+---
+
+## Common Agent Commands
+
+### Review Issues
+```
+@issue-creator show me all available issues
+@issue-creator what's in the issue templates?
+@issue-creator explain the issue priorities
+```
+
+### Create Specific Issues
+```
+@issue-creator create issue #1
+@issue-creator create issue #1 about MQTT reliability
+@issue-creator create issues #1, #2, and #3
+```
+
+### Create by Criteria
+```
+@issue-creator create all high-priority issues
+@issue-creator create all Phase 1 issues
+@issue-creator create issues for this week
+```
+
+### Check Before Creating
+```
+@issue-creator does issue #1 already exist?
+@issue-creator check for duplicate issues before creating
+@issue-creator list existing issues first
+```
+
+---
+
+## Why Use the Agent?
+
+### ✅ Advantages
+- **Native GitHub integration** - Uses MCP (Model Context Protocol)
+- **No setup required** - Just use Copilot Chat
+- **Interactive** - Ask questions, get explanations
+- **Smart** - Checks for duplicates automatically
+- **Flexible** - Create one, some, or all issues
+- **Instant** - Creates issues in real-time
+- **Context-aware** - Understands dependencies
+
+### 🚀 Better Than Scripts
+- No environment variables to configure
+- No GITHUB_TOKEN needed (uses your auth)
+- No command line needed
+- More flexible and interactive
+- Better error handling and explanations
+
+---
+
+## Alternative: CLI Scripts
+
+For automation or if you don't have GitHub Copilot, you can use the CLI scripts:
+
+### CLI Scripts (for automation/CI/CD):
+
+```bash
+# Preview what will be created
+npm run create-issues:dry-run
+
+# Create all issues
+npm run create-issues
+
+# Create a specific issue  
+npm run create-issues -- --file ISSUE_01_local_storage_mqtt_reliability.md
+```
+
+**When to use CLI:**
+- Automated CI/CD pipelines
+- Batch operations in scripts
+- You don't have GitHub Copilot
+
+**CLI limitations compared to agent:**
+- Requires GITHUB_TOKEN setup
+- Less interactive
+- Can't ask questions or get explanations
+- No smart duplicate detection
+- Fixed behavior (can't customize on the fly)
+
+---
+
+## Real-World Example
+
+**Scenario**: You want to improve your greenhouse monitoring system.
+
+### Using the Agent (Recommended)
+
+**Chat conversation**:
+```
+You: @issue-creator I want to start implementing long-term storage. 
+     What issues are available?
+
+Agent: I found 7 issue templates for long-term storage implementation.
+       Let me show you the high-priority ones:
+       
+       1. Enhanced Local Storage & MQTT (2-3h) - Foundation work
+       2. HomeAssistant Integration (1-2h) - Monitoring & alerts
+       3. MariaDB on Kubernetes (2-3h) - Database infrastructure
+       
+       I recommend starting with #1 and #2 first. Would you like me 
+       to create these?
+
+You: Yes, create #1 and #2
+
+Agent: ✅ Created Issue #1: Enhanced Local Storage & MQTT Reliability
+       https://github.com/rmwondolleck/greenhouse-monitor/issues/123
+       
+       ✅ Created Issue #2: HomeAssistant MQTT Integration & Alerts
+       https://github.com/rmwondolleck/greenhouse-monitor/issues/124
+       
+       Great! Start with #1 - it provides the foundation for #2.
+
+You: What should I do after these are done?
+
+Agent: After completing #1 and #2, you'll have solid local storage 
+       and monitoring. Next steps:
+       
+       - Issue #3: MariaDB on K8s (provides long-term database)
+       - Issue #4: Migrate HA to MariaDB (connect everything)
+       
+       Want me to create these now or wait until #1 and #2 are done?
+```
+
+**Result**: Interactive, helpful, creates exactly what you need when you need it.
+
+---
+
+## Comparison: Agent vs CLI
+
+| Feature | Agent (Recommended) | CLI Scripts |
+|---------|-------------------|-------------|
+| **Setup** | None - uses Copilot | Requires GITHUB_TOKEN |
+| **Interaction** | Conversational | Command-only |
+| **Duplicate Check** | Automatic | Manual |
+| **Customization** | On-the-fly in chat | Edit templates first |
+| **Explanations** | Explains priorities & dependencies | No explanations |
+| **Selective Creation** | Create any combination | All or specific file |
+| **Error Handling** | Helpful messages in chat | Error logs |
+| **Learning Curve** | Natural language | CLI syntax |
+| **Best For** | Interactive development | Automation/CI/CD |
+
+---
+
+## Getting Started
+
+### For Most Users (Recommended)
+1. Open GitHub Copilot Chat
+2. Type: `@issue-creator show me available issues`
+3. Follow the conversation to create what you need
+
+### For Automation
+1. Set up GITHUB_TOKEN in .env
+2. Run: `npm run create-issues:dry-run`
+3. Review and run: `npm run create-issues`
+
+---
+
+## Tips for Using the Agent
+
+1. **Start with "show me"** - Always review what's available first
+   ```
+   @issue-creator show me all available issues
+   ```
+
+2. **Ask for recommendations** - The agent knows dependencies
+   ```
+   @issue-creator which issues should I create first?
+   ```
+
+3. **Create incrementally** - Don't create all at once
+   ```
+   @issue-creator create just the high-priority issues
+   ```
+
+4. **Verify first** - Check for existing issues
+   ```
+   @issue-creator check if any of these issues already exist
+   ```
+
+5. **Get explanations** - Understand what each issue does
+   ```
+   @issue-creator explain what issue #3 is about
+   ```
+
+---
+
+## Troubleshooting
+
+### "I don't see the @issue-creator agent"
+- Make sure GitHub Copilot is enabled
+- Check that you're in the greenhouse-monitor repository
+- Try refreshing your IDE or browser
+
+### "The agent says it can't create issues"
+- The agent uses GitHub MCP tools which require proper permissions
+- Make sure you're authenticated with GitHub
+- Check your GitHub access to the repository
+
+### "I want to use scripts instead"
+- See the CLI Scripts section above
+- You'll need to set up GITHUB_TOKEN in .env
+- Refer to [scripts/README.md](../../scripts/README.md)
+
+---
+
+## What Gets Created
+
+Whether using agent or CLI, each issue includes:
 
 ```
 📋 Issue Templates Found:

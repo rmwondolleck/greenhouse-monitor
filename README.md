@@ -129,23 +129,36 @@ GitHub Actions workflows automatically assist with:
 
 ### Issue Creator Agent
 
-**Interactive (Recommended)**: Use the interactive mode for guided issue creation with custom context:
+**🎯 Recommended: Use GitHub Copilot Chat with the @issue-creator agent**
 
-```bash
-# Preview in dry-run mode
-npm run create-issues:interactive:dry-run
+The `@issue-creator` agent directly creates GitHub issues from markdown templates using GitHub's native MCP tools - no scripts needed!
 
-# Create issues interactively
-npm run create-issues:interactive
+**In GitHub Copilot Chat**:
+```
+@issue-creator review all issue templates and show priorities
+@issue-creator create all high-priority issues
+@issue-creator create issue #1 about MQTT reliability
+@issue-creator create issues for Phase 1
 ```
 
-The interactive mode will:
-- Show you all available issues with priorities and time estimates
-- Ask for additional information (start date, assignee, notes)
-- Create all sub-issues with your custom context
-- Create a tracking issue that links all sub-issues together
+**The agent will**:
+- ✅ Read issue templates from `docs/github-issues/`
+- ✅ Parse metadata (title, labels, priorities, time estimates)
+- ✅ Check for existing issues to avoid duplicates
+- ✅ **Create issues directly** using GitHub MCP tools
+- ✅ Provide immediate links to created issues
+- ✅ Explain dependencies and implementation order
 
-**Command Line**: Use the CLI tool for batch operations:
+**Why use the agent?**
+- 🚀 **Native GitHub integration** - No scripts to run
+- 💬 **Interactive** - Ask questions, customize before creating
+- 🎯 **Selective** - Create specific issues or all at once
+- 🔍 **Smart** - Checks for duplicates, explains priorities
+- ⚡ **Instant** - Creates issues in real-time via chat
+
+**Alternative: CLI Scripts (for automation/CI/CD)**
+
+For automated workflows or if you don't have GitHub Copilot:
 
 ```bash
 # Preview what will be created
@@ -154,27 +167,22 @@ npm run create-issues:dry-run
 # Create all issues
 npm run create-issues
 
-# Create a specific issue
+# Create specific issue
 npm run create-issues -- --file=ISSUE_01_local_storage_mqtt_reliability.md
 ```
 
-**GitHub Copilot Agent**: Use the custom agent in GitHub Copilot Chat:
-
-```
-@issue-creator Review all issue templates and show priorities
-@issue-creator Create all high-priority issues
-@issue-creator Create issue #1 about MQTT reliability
-```
+**Note**: The agent provides a superior interactive experience. Use CLI scripts only for automation or batch operations.
 
 **Features:**
-- ✅ Automatically parses issue templates with labels and milestones
+- ✅ **Native GitHub integration** via MCP (Model Context Protocol)
+- ✅ **Direct issue creation** from Copilot Chat - no scripts needed
 - ✅ Checks for existing issues to avoid duplicates
-- ✅ Explains priorities and dependencies
-- ✅ Interactive mode with custom context (start date, assignee, notes)
-- ✅ Creates tracking issue with sub-issues
-- ✅ Batch creation modes
+- ✅ Explains priorities, dependencies, and implementation order
+- ✅ Interactive customization before creating
+- ✅ Works directly in your GitHub Copilot Chat interface
+- ✅ Fallback CLI scripts available for automation
 
-See [scripts/README.md](scripts/README.md) for CLI setup and [.github/agents/issue-creator.md](.github/agents/issue-creator.md) for agent usage.
+See [.github/agents/issue-creator.agent.md](.github/agents/issue-creator.agent.md) for the agent's capabilities and [docs/github-issues/](docs/github-issues/) for available templates.
 
 ### Using the Agents
 
