@@ -30,6 +30,9 @@ const GITHUB_REPO = process.env.GITHUB_REPO || 'greenhouse-monitor';
 const GITHUB_API_BASE = 'https://api.github.com';
 const ISSUES_DIR = path.join(process.cwd(), 'docs', 'github-issues');
 
+// Constants
+const DRY_RUN_ISSUE_NUMBER = -1; // Placeholder issue number used in dry-run mode
+
 // Parse command line arguments
 const args = process.argv.slice(2);
 const isDryRun = args.includes('--dry-run');
@@ -150,6 +153,7 @@ function parseIssueTemplate(filePath: string): IssueData {
   }
   
   // Try to extract time estimate from content
+  // Support both hyphen (-) and en-dash (–) characters commonly found in markdown
   const timeMatch = content.match(/(\d+[-–]\d+)\s*(?:hours?|h)/i);
   if (timeMatch) {
     timeEstimate = timeMatch[1] + 'h';
@@ -306,12 +310,20 @@ async function gatherAdditionalInfo(rl: readline.Interface): Promise<UserPrefere
 
 /**
  * Update tracking issue body with sub-issue numbers
+ * 
+ * Replaces #TBD placeholders in the tracking issue with actual GitHub issue numbers.
+ * The pattern matches the checkbox format: "- [ ] #TBD - Title (Phase)"
+ * 
+ * @param trackingBody - Original tracking issue body with #TBD placeholders
+ * @param subIssues - Array of created sub-issues with their numbers
+ * @returns Updated body with #TBD replaced by actual issue numbers
  */
 function updateTrackingIssueBody(
   trackingBody: string,
   subIssues: Array<{ filename: string; number: number; title: string }>
 ): string {
   let updatedBody = trackingBody;
+  let replacementCount = 0;
   
   // Replace #TBD placeholders with actual issue numbers
   subIssues.forEach((subIssue) => {
@@ -319,10 +331,21 @@ function updateTrackingIssueBody(
     const issueNum = subIssue.filename.match(/ISSUE_(\d+)/)?.[1];
     if (issueNum) {
       // Find and replace #TBD for this issue
+      // Pattern matches: "- [ ] #TBD - [title containing issue number]"
       const pattern = new RegExp(`(- \\[ \\] )#TBD( - .*?${issueNum.replace(/^0+/, '')}.*?)`, 'm');
+      const beforeReplace = updatedBody;
       updatedBody = updatedBody.replace(pattern, `$1#${subIssue.number}$2`);
+      
+      if (beforeReplace !== updatedBody) {
+        replacementCount++;
+      }
     }
   });
+  
+  // Log warning if not all placeholders were replaced
+  if (replacementCount !== subIssues.length) {
+    console.warn(`⚠️  Warning: Expected to replace ${subIssues.length} placeholders, but only replaced ${replacementCount}`);
+  }
   
   return updatedBody;
 }
@@ -465,7 +488,7 @@ async function mainInteractive() {
           created++;
           createdIssues.push({
             filename: issue.filename,
-            number: 999, // Placeholder for dry run
+            number: DRY_RUN_ISSUE_NUMBER, // Use constant for clarity
             title: issue.title
           });
         } else {
