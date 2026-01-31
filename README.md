@@ -146,3 +146,29 @@ For detailed workflow documentation, see:
 - [Workflow Guide](.github/workflows/README.md)
 - [Agent Documentation](.github/agents/README.md)
 - [Agent Workflows](.github/AGENT_WORKFLOWS.md) (auto-generated)
+
+## 🚀 Future Enhancements
+
+### Long-Term Storage & Year-over-Year Analysis
+
+We have a comprehensive plan for adding multi-year data retention and historical analysis capabilities:
+
+📋 **[Executive Summary](docs/EXECUTIVE_SUMMARY.md)** - Quick overview of the enhancement plan
+
+📖 **[Implementation Roadmap](docs/IMPLEMENTATION_ROADMAP.md)** - Step-by-step guide with troubleshooting
+
+🏗️ **[Technical Plan](docs/LONG_TERM_STORAGE_PLAN.md)** - Detailed architecture and design
+
+🎫 **[GitHub Issues](docs/github-issues/)** - Ready-to-use issue templates for each phase
+
+**What you'll get**:
+- 14-day local storage (up from 7 days)
+- Multi-year data retention in MariaDB on Kubernetes
+- Automated weekly backups to Synology NAS
+- Year-over-year comparison dashboard
+- 5-day offline alert automation
+- Support for outdoor sensor comparison (future)
+
+**Time investment**: 12-18 hours over 2-3 weeks
+
+**Cost**: $0 (uses existing K8s cluster and NAS)
