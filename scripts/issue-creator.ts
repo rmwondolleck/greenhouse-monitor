@@ -42,6 +42,19 @@ interface IssueData {
   filename: string;
 }
 
+interface GitHubIssueResponse {
+  number: number;
+  html_url: string;
+  title: string;
+  state: string;
+}
+
+interface GitHubIssue {
+  title: string;
+  number: number;
+  state: string;
+}
+
 /**
  * Parse a markdown issue template file
  */
@@ -104,7 +117,7 @@ function parseIssueTemplate(filePath: string): IssueData {
 /**
  * Create a GitHub issue using the REST API
  */
-async function createGitHubIssue(issueData: IssueData): Promise<any> {
+async function createGitHubIssue(issueData: IssueData): Promise<GitHubIssueResponse> {
   if (!GITHUB_TOKEN) {
     throw new Error('GITHUB_TOKEN environment variable is required');
   }
@@ -121,7 +134,7 @@ async function createGitHubIssue(issueData: IssueData): Promise<any> {
   const response = await fetch(url, {
     method: 'POST',
     headers: {
-      'Authorization': `token ${GITHUB_TOKEN}`,
+      'Authorization': `Bearer ${GITHUB_TOKEN}`,
       'Accept': 'application/vnd.github.v3+json',
       'Content-Type': 'application/json'
     },
@@ -133,7 +146,7 @@ async function createGitHubIssue(issueData: IssueData): Promise<any> {
     throw new Error(`GitHub API error: ${response.status} - ${errorText}`);
   }
   
-  return await response.json();
+  return await response.json() as GitHubIssueResponse;
 }
 
 /**
@@ -165,7 +178,7 @@ async function issueExists(title: string): Promise<boolean> {
   try {
     const response = await fetch(url, {
       headers: {
-        'Authorization': `token ${GITHUB_TOKEN}`,
+        'Authorization': `Bearer ${GITHUB_TOKEN}`,
         'Accept': 'application/vnd.github.v3+json'
       }
     });
@@ -175,8 +188,8 @@ async function issueExists(title: string): Promise<boolean> {
       return false;
     }
     
-    const issues = await response.json() as any[];
-    return issues.some((issue: any) => issue.title === title);
+    const issues = await response.json() as GitHubIssue[];
+    return issues.some((issue) => issue.title === title);
   } catch (error) {
     console.warn(`⚠️  Error checking existing issues:`, error);
     return false;
