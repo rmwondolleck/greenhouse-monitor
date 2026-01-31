@@ -16,7 +16,9 @@
     "type-check": "tsc --noEmit --project tsconfig.server.json",
     "test:mock": "NODE_ENV=development node -e \"console.log('Testing mock mode...'); require('./dist/server.js')\"",
     "create-issues": "ts-node scripts/issue-creator.ts",
-    "create-issues:dry-run": "ts-node scripts/issue-creator.ts --dry-run"
+    "create-issues:dry-run": "ts-node scripts/issue-creator.ts --dry-run",
+    "create-issues:interactive": "ts-node scripts/issue-creator-interactive.ts --tracking",
+    "create-issues:interactive:dry-run": "ts-node scripts/issue-creator-interactive.ts --tracking --dry-run"
   },
   "dependencies": {
     "@oawu/lcd1602": "^1.0.1",

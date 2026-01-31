@@ -129,7 +129,36 @@ GitHub Actions workflows automatically assist with:
 
 ### Issue Creator Agent
 
-**Interactive (Recommended)**: Use the custom agent in GitHub Copilot Chat for guided issue creation:
+**Interactive (Recommended)**: Use the interactive mode for guided issue creation with custom context:
+
+```bash
+# Preview in dry-run mode
+npm run create-issues:interactive:dry-run
+
+# Create issues interactively
+npm run create-issues:interactive
+```
+
+The interactive mode will:
+- Show you all available issues with priorities and time estimates
+- Ask for additional information (start date, assignee, notes)
+- Create all sub-issues with your custom context
+- Create a tracking issue that links all sub-issues together
+
+**Command Line**: Use the CLI tool for batch operations:
+
+```bash
+# Preview what will be created
+npm run create-issues:dry-run
+
+# Create all issues
+npm run create-issues
+
+# Create a specific issue
+npm run create-issues -- --file=ISSUE_01_local_storage_mqtt_reliability.md
+```
+
+**GitHub Copilot Agent**: Use the custom agent in GitHub Copilot Chat:
 
 ```
 @issue-creator Review all issue templates and show priorities
@@ -137,24 +166,13 @@ GitHub Actions workflows automatically assist with:
 @issue-creator Create issue #1 about MQTT reliability
 ```
 
-**Command Line**: Use the CLI tool for bulk operations:
-
-```bash
-# Preview what will be created
-npm run create-issues:dry-run
-
-# Create all issues from templates
-npm run create-issues
-
-# Create a specific issue
-npm run create-issues -- --file=ISSUE_01_local_storage_mqtt_reliability.md
-```
-
 **Features:**
 - ✅ Automatically parses issue templates with labels and milestones
 - ✅ Checks for existing issues to avoid duplicates
 - ✅ Explains priorities and dependencies
-- ✅ Interactive or batch creation modes
+- ✅ Interactive mode with custom context (start date, assignee, notes)
+- ✅ Creates tracking issue with sub-issues
+- ✅ Batch creation modes
 
 See [scripts/README.md](scripts/README.md) for CLI setup and [.github/agents/issue-creator.md](.github/agents/issue-creator.md) for agent usage.
 

@@ -2,9 +2,15 @@
 
 This directory contains utility scripts for managing the Greenhouse Monitor project.
 
-## Issue Creator Agent (`issue-creator.ts`)
+## Issue Creator Agent
 
-The Issue Creator Agent is a tool that reviews issue templates in `docs/github-issues/` and creates GitHub issues from them automatically.
+The Issue Creator Agent provides two modes for creating GitHub issues from templates in `docs/github-issues/`:
+
+### 1. Batch Mode (`issue-creator.ts`)
+Creates issues non-interactively in batch mode.
+
+### 2. Interactive Mode (`issue-creator-interactive.ts`) - **Recommended**
+Creates issues with interactive prompts for additional information, and optionally creates a tracking issue with sub-issues.
 
 ### Features
 
@@ -14,6 +20,9 @@ The Issue Creator Agent is a tool that reviews issue templates in `docs/github-i
 - ✅ Dry-run mode for testing
 - ✅ Support for creating individual or all issues
 - ✅ Rate limiting to respect GitHub API limits
+- ✅ **Interactive mode with user prompts** (new)
+- ✅ **Creates tracking issue with sub-issues** (new)
+- ✅ **Adds custom context and notes to issues** (new)
 
 ### Setup
 
@@ -35,24 +44,41 @@ The Issue Creator Agent is a tool that reviews issue templates in `docs/github-i
 
 ### Usage
 
-#### Create all issues (dry run first)
+#### Interactive Mode (Recommended)
+
+The interactive mode walks you through creating issues with additional context:
+
+```bash
+# Preview what will be created (dry run)
+npm run create-issues:interactive:dry-run
+
+# Create all issues with tracking issue interactively
+npm run create-issues:interactive
+```
+
+The interactive mode will:
+1. Display a summary of all issue templates with priorities and time estimates
+2. Ask for additional information:
+   - Planned start date
+   - Assignee (GitHub username)
+   - Additional notes/context
+3. Confirm before creating issues
+4. Create all sub-issues with your custom context
+5. Create a tracking issue that links to all sub-issues
+
+#### Batch Mode
+
+For non-interactive batch operations:
+
 ```bash
 # Preview what will be created
 npm run create-issues:dry-run
 
 # Create all issues
 npm run create-issues
-```
 
-#### Create a specific issue
-```bash
-# Dry run for a specific file (both formats supported)
-npm run create-issues -- --dry-run --file ISSUE_01_local_storage_mqtt_reliability.md
-npm run create-issues -- --dry-run --file=ISSUE_01_local_storage_mqtt_reliability.md
-
-# Create a specific issue (both formats supported)
+# Create a specific issue
 npm run create-issues -- --file ISSUE_01_local_storage_mqtt_reliability.md
-npm run create-issues -- --file=ISSUE_01_local_storage_mqtt_reliability.md
 ```
 
 ### Issue Template Format
