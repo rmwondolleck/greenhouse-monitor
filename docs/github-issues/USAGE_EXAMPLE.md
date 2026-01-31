@@ -143,30 +143,29 @@ Done! Created 2 issues. You can start with #1 first.
 
 For automation or if you don't have GitHub Copilot, you can use the CLI scripts:
 
-### CLI Scripts (for automation/CI/CD):
+---
+
+## ⚠️ Historical Note: CLI Scripts (REMOVED)
+
+**NPM scripts have been completely removed from this project.**
+
+The following commands NO LONGER WORK (included for historical reference only):
 
 ```bash
-# Preview what will be created
-npm run create-issues:dry-run
-
-# Create all issues
-npm run create-issues
-
-# Create a specific issue  
-npm run create-issues -- --file ISSUE_01_local_storage_mqtt_reliability.md
+# These commands DO NOT EXIST anymore
+npm run create-issues:dry-run            # REMOVED
+npm run create-issues                    # REMOVED  
+npm run create-issues -- --file X.md     # REMOVED
 ```
 
-**When to use CLI:**
-- Automated CI/CD pipelines
-- Batch operations in scripts
-- You don't have GitHub Copilot
+**Why removed:**
+- Agent provides superior experience
+- No GITHUB_TOKEN setup needed
+- More interactive and flexible
+- Native GitHub integration
+- Less code to maintain
 
-**CLI limitations compared to agent:**
-- Requires GITHUB_TOKEN setup
-- Less interactive
-- Can't ask questions or get explanations
-- No smart duplicate detection
-- Fixed behavior (can't customize on the fly)
+**For automation:** Use GitHub Actions instead of NPM scripts. GitHub Actions can create issues directly via the GitHub API in workflows.
 
 ---
 
@@ -216,33 +215,33 @@ Agent: After completing #1 and #2, you'll have solid local storage
 
 ---
 
-## Comparison: Agent vs CLI
+## Comparison: Agent Only
 
-| Feature | Agent (Recommended) | CLI Scripts |
-|---------|-------------------|-------------|
-| **Setup** | None - uses Copilot | Requires GITHUB_TOKEN |
-| **Interaction** | Conversational | Command-only |
-| **Duplicate Check** | Automatic | Manual |
-| **Customization** | On-the-fly in chat | Edit templates first |
-| **Explanations** | Explains priorities & dependencies | No explanations |
-| **Selective Creation** | Create any combination | All or specific file |
-| **Error Handling** | Helpful messages in chat | Error logs |
-| **Learning Curve** | Natural language | CLI syntax |
-| **Best For** | Interactive development | Automation/CI/CD |
+| Feature | Agent |
+|---------|-------|
+| **Setup** | None - uses Copilot |
+| **Interaction** | Conversational |
+| **Duplicate Check** | Automatic |
+| **Customization** | On-the-fly in chat |
+| **Explanations** | Full context and dependencies |
+| **Selective Creation** | Create any combination |
+| **Error Handling** | Helpful messages in chat |
+| **Learning Curve** | Natural language |
+| **Best For** | Everything - it's the only option |
+
+**Note**: NPM scripts have been removed. The agent is now the exclusive way to create issues.
 
 ---
 
 ## Getting Started
 
-### For Most Users (Recommended)
+### Using the Agent (Only Option)
 1. Open GitHub Copilot Chat
 2. Type: `@issue-creator show me available issues`
 3. Follow the conversation to create what you need
 
 ### For Automation
-1. Set up GITHUB_TOKEN in .env
-2. Run: `npm run create-issues:dry-run`
-3. Review and run: `npm run create-issues`
+If automation is needed, use **GitHub Actions** to create issues via GitHub API directly in workflows. The NPM scripts have been removed.
 
 ---
 
@@ -287,10 +286,10 @@ Agent: After completing #1 and #2, you'll have solid local storage
 - Make sure you're authenticated with GitHub
 - Check your GitHub access to the repository
 
-### "I want to use scripts instead"
-- See the CLI Scripts section above
-- You'll need to set up GITHUB_TOKEN in .env
-- Refer to [scripts/README.md](../../scripts/README.md)
+### "I need automation"
+- **Use GitHub Actions** instead of NPM scripts
+- Create a workflow file that uses GitHub API to create issues
+- See GitHub Actions documentation for examples
 
 ---
 

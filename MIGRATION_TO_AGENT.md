@@ -46,20 +46,20 @@ Migrated to GitHub Copilot agent while keeping scripts as fallback:
 
 ## Before: NPM Scripts (REMOVED)
 ```bash
-# Setup required
-echo "GITHUB_TOKEN=your_token" >> .env
+# These commands NO LONGER EXIST
+# Scripts have been deleted
 
-# Run commands
-npm run create-issues:interactive:dry-run
-npm run create-issues:interactive
+npm run create-issues:interactive:dry-run  # REMOVED
+npm run create-issues:interactive          # REMOVED
 ```
 
-**Problems:**
+**Problems (why removed):**
 - ❌ Required GITHUB_TOKEN setup
 - ❌ Command line only
 - ❌ Less interactive
 - ❌ No conversational context
 - ❌ Fixed script behavior
+- ❌ Maintenance burden
 
 ## After: GitHub Copilot Agent (Current)
 ```
@@ -84,7 +84,16 @@ Agent: ✅ Created Issue #1: https://github.com/.../issues/123
 
 ## Technical Changes
 
-### 1. Updated Agent File (`.github/agents/issue-creator.agent.md`)
+### Files Removed
+- `scripts/issue-creator.ts` - Batch mode script (DELETED)
+- `scripts/issue-creator-interactive.ts` - Interactive mode script (DELETED)
+
+### Package.json Updates
+Removed these NPM scripts:
+- `create-issues` (REMOVED)
+- `create-issues:dry-run` (REMOVED)
+- `create-issues:interactive` (REMOVED)
+- `create-issues:interactive:dry-run` (REMOVED)
 **Key changes:**
 - Removed references to TypeScript scripts as primary method
 - Added instructions for direct MCP tool usage

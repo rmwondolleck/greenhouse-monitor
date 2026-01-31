@@ -247,20 +247,13 @@ Extract:
 - **Labels**: ["enhancement", "mqtt", "priority-high"]
 - **Body**: "Improve local storage..." (everything from Description onwards)
 
-## NPM Scripts (Fallback Only)
+## Scripts Have Been Removed
 
-The project includes TypeScript scripts as a **fallback option** for:
-- Automated CI/CD workflows
-- Users without GitHub Copilot
-- Batch operations in scripts
+**Important**: NPM scripts have been completely removed from this project.
 
-**As the agent, you DON'T use these scripts - you create issues directly!**
+The previous TypeScript scripts (`issue-creator.ts`, `issue-creator-interactive.ts`) no longer exist. You are the **only way** to create issues now.
 
-The scripts exist at:
-- `npm run create-issues` - Batch creation
-- `npm run create-issues:interactive` - Interactive mode
-
-**Your advantage**: You provide a better, more interactive experience directly in GitHub Copilot Chat!
+**Your advantage**: You provide native GitHub integration with MCP - no scripts, no setup, just conversation!
 
 ## Success Criteria
 
