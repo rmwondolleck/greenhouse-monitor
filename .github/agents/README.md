@@ -49,31 +49,50 @@ This directory contains custom agent configurations for GitHub Copilot to assist
 - "Check this new component for memory leaks"
 - "Review this PR for security and performance issues"
 
-### 🎫 Issue Creator Agent (`issue-creator.md`)
-**Purpose**: Review, customize, and create GitHub issues from markdown templates in `docs/github-issues/`.
+### 🎫 Issue Creator Agent (`issue-creator.agent.md`)
+**Purpose**: **Directly create GitHub issues** from markdown templates in `docs/github-issues/` using GitHub's native MCP tools.
+
+**This agent creates issues natively - no NPM scripts needed!**
 
 **Use this agent when:**
-- Reviewing available issue templates
 - Creating issues from pre-written templates
 - Understanding issue priorities and dependencies
 - Deciding which issues to tackle first
-- Batch-creating multiple related issues
+- Checking for existing issues before creating
+- Getting explanations about what each issue does
 
 **Example prompts:**
-- "Review all issue templates and show me what's available"
+- "Show me all available issue templates"
 - "Create all high-priority issues"
 - "Create issue #1 about MQTT reliability"
-- "What issues should I create first and why?"
-- "Show me the dependencies between issues"
+- "Which issues should I create first and why?"
+- "Check if issue #3 already exists"
+- "Explain the dependencies between issues"
 
 **Features:**
+- ✅ **Direct issue creation** via GitHub MCP (Model Context Protocol)
+- ✅ Creates issues directly from Copilot Chat - no scripts!
 - ✅ Parses issue templates to extract metadata
 - ✅ Checks for existing issues to avoid duplicates
 - ✅ Explains priorities and implementation order
-- ✅ Can create issues one-by-one or in bulk
-- ✅ Provides guidance on issue dependencies
+- ✅ Interactive and conversational
+- ✅ Provides immediate links to created issues
 
-**Note**: This agent can guide you through using the TypeScript script (`npm run create-issues`) or help you create issues interactively.
+**How it works:**
+1. You ask in Copilot Chat: `@issue-creator show me available issues`
+2. Agent reads templates from `docs/github-issues/`
+3. Agent shows you what's available with priorities
+4. You ask: `@issue-creator create issues #1 and #2`
+5. Agent creates them directly using GitHub MCP tools
+6. Agent provides links to the created issues
+
+**Advantages over NPM scripts:**
+- 🚀 Native GitHub integration (no GITHUB_TOKEN setup)
+- 💬 Conversational and interactive
+- 🎯 Create exactly what you need
+- 🔍 Smart duplicate detection
+- ⚡ Instant creation from chat
+- 📚 Explains context and dependencies
 
 ## How to Use These Agents
 

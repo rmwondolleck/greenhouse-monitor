@@ -80,15 +80,46 @@ Can be done in parallel with Week 1:
 
 ## Creating Issues in GitHub
 
-To create these issues in your repository:
+### ⭐ Use GitHub Copilot Agent
 
-### Option 1: Manually (Recommended for review)
+**Use the @issue-creator agent directly in GitHub Copilot Chat**
+
+The native agent creates issues using GitHub's MCP (Model Context Protocol) - no scripts or setup needed!
+
+**How to use**:
+1. Open GitHub Copilot Chat (in VS Code, GitHub.com, or your IDE)
+2. Type: `@issue-creator review all issue templates`
+3. The agent will show you all available issues with priorities
+4. Ask it to create issues: `@issue-creator create all high-priority issues`
+
+**Example commands**:
+```
+@issue-creator show me all available issues
+@issue-creator create issue #1 about MQTT reliability
+@issue-creator create all Phase 1 issues
+@issue-creator which issues should I create first?
+@issue-creator create issues #1, #2, and #3
+```
+
+**Benefits:**
+- ✅ **Native GitHub integration** - Creates issues directly via MCP
+- ✅ **Interactive** - Ask questions, customize before creating
+- ✅ **Smart duplicate detection** - Checks existing issues first
+- ✅ **Explains dependencies** - Shows you what to build first
+- ✅ **Real-time** - Creates issues immediately in the chat
+- ✅ **No setup required** - Just use Copilot Chat
+
+See [USAGE_EXAMPLE.md](USAGE_EXAMPLE.md) for a detailed walkthrough.
+
+---
+
+### Manual Creation (For Review)
 1. Go to GitHub repository → Issues → New Issue
 2. Copy content from each markdown file
 3. Add appropriate labels and milestone
 4. Assign to yourself
 
-### Option 2: GitHub CLI
+This is useful when you want to review the exact content before creating.
 ```bash
 # Install GitHub CLI if needed
 # brew install gh  (macOS)
@@ -102,21 +133,7 @@ gh issue create --title "Enhanced Local Storage & MQTT Reliability" \
   --body-file docs/github-issues/ISSUE_01_local_storage_mqtt_reliability.md \
   --label "enhancement,mqtt,priority-high,phase-1"
 
-gh issue create --title "HomeAssistant MQTT Integration & Alerts" \
-  --body-file docs/github-issues/ISSUE_02_homeassistant_integration.md \
-  --label "enhancement,homeassistant,monitoring,priority-high,phase-2"
-
 # ... repeat for each issue
-```
-
-### Option 3: GitHub API
-```bash
-# Using curl
-curl -X POST \
-  -H "Authorization: token YOUR_GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github.v3+json" \
-  https://api.github.com/repos/rmwondolleck/greenhouse-monitor/issues \
-  -d '{"title":"Issue title","body":"Issue body","labels":["enhancement"]}'
 ```
 
 ## Progress Tracking
