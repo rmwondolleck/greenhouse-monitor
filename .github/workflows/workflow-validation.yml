@@ -34,9 +34,14 @@ jobs:
         run: |
           python3 scripts/validate-workflows.py .github/workflows/ --verbose
 
-      - name: Run yamllint
+      - name: Run yamllint (informational)
+        continue-on-error: true
         run: |
-          yamllint .github/workflows/ || true
+          echo "Running yamllint for style checking (warnings only)..."
+          yamllint .github/workflows/
+          echo ""
+          echo "Note: yamllint failures are currently informational."
+          echo "Fix them gradually to improve workflow quality."
 
       - name: Validation summary
         if: always()
