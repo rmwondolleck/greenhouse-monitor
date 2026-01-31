@@ -15,9 +15,9 @@
  *   GITHUB_REPO - Repository name (default: greenhouse-monitor)
  */
 
-import fs from 'fs';
-import path from 'path';
-import dotenv from 'dotenv';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as dotenv from 'dotenv';
 import * as readline from 'readline';
 
 // Load environment variables

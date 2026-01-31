@@ -82,13 +82,50 @@ Can be done in parallel with Week 1:
 
 To create these issues in your repository:
 
-### Option 1: Manually (Recommended for review)
+### Option 1: Interactive Script (✨ Recommended)
+
+The interactive script guides you through creating all issues with a tracking issue:
+
+```bash
+# Preview first (recommended)
+npm run create-issues:interactive:dry-run
+
+# Create all issues with tracking issue
+npm run create-issues:interactive
+```
+
+See [USAGE_EXAMPLE.md](USAGE_EXAMPLE.md) for a detailed walkthrough with screenshots and examples.
+
+**Benefits:**
+- ✅ Creates all 7 sub-issues + 1 tracking issue
+- ✅ Automatically links sub-issues in tracking issue
+- ✅ Prompts for custom context (start date, assignee, notes)
+- ✅ Shows priorities and time estimates
+- ✅ Prevents duplicates
+- ✅ Includes dry-run mode
+
+### Option 2: Batch Script
+
+For non-interactive batch operations:
+
+```bash
+# Create all issues (no tracking issue, no custom context)
+npm run create-issues
+
+# Create a specific issue
+npm run create-issues -- --file ISSUE_01_local_storage_mqtt_reliability.md
+
+# Dry run
+npm run create-issues:dry-run
+```
+
+### Option 3: Manually (For review)
 1. Go to GitHub repository → Issues → New Issue
 2. Copy content from each markdown file
 3. Add appropriate labels and milestone
 4. Assign to yourself
 
-### Option 2: GitHub CLI
+### Option 4: GitHub CLI
 ```bash
 # Install GitHub CLI if needed
 # brew install gh  (macOS)
@@ -102,21 +139,7 @@ gh issue create --title "Enhanced Local Storage & MQTT Reliability" \
   --body-file docs/github-issues/ISSUE_01_local_storage_mqtt_reliability.md \
   --label "enhancement,mqtt,priority-high,phase-1"
 
-gh issue create --title "HomeAssistant MQTT Integration & Alerts" \
-  --body-file docs/github-issues/ISSUE_02_homeassistant_integration.md \
-  --label "enhancement,homeassistant,monitoring,priority-high,phase-2"
-
 # ... repeat for each issue
-```
-
-### Option 3: GitHub API
-```bash
-# Using curl
-curl -X POST \
-  -H "Authorization: token YOUR_GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github.v3+json" \
-  https://api.github.com/repos/rmwondolleck/greenhouse-monitor/issues \
-  -d '{"title":"Issue title","body":"Issue body","labels":["enhancement"]}'
 ```
 
 ## Progress Tracking
