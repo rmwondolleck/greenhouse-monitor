@@ -105,3 +105,4 @@ jobs:
             console.log('🌐 Dashboard: http://greenhouse.local:3000');
             console.log('📊 Monitor: ssh rwondoll@greenhouse.local \'tail -f ~/deploy.log\'');
             console.log('🔄 Service: ssh rwondoll@greenhouse.local \'sudo systemctl status greenhouse-monitor\'');
+

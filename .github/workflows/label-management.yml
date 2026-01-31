@@ -91,3 +91,4 @@ jobs:
             }
 
             console.log('\n✅ All labels have been created/updated');
+
