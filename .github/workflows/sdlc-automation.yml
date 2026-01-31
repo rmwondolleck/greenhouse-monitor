@@ -314,13 +314,13 @@ jobs:
             });
 
       - name: Push branch (if not dry run)
-        if: inputs.dry_run != true
+        if: inputs.dry_run != 'true'
         run: |
           git push origin "$BRANCH_NAME"
           echo "✅ Pushed branch: $BRANCH_NAME"
 
       - name: Phase 4 - Create Pull Request
-        if: inputs.dry_run != true
+        if: inputs.dry_run != 'true'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -387,7 +387,7 @@ jobs:
             });
 
       - name: Dry run summary
-        if: inputs.dry_run == true
+        if: inputs.dry_run == 'true'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
