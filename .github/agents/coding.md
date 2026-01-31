@@ -37,7 +37,7 @@ The Greenhouse Monitor is a full-stack TypeScript application that:
     GreenhouseMonitor.tsx
     HistoricalChart.tsx
     main.tsx
-/sensor/             # Sensor-related code (if applicable)
+/sensor/             # Sensor abstraction layer
 package.json         # Dependencies and scripts
 tsconfig.json        # TypeScript configuration
 ```
