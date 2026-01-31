@@ -180,7 +180,7 @@ Great job adding try-catch around the sensor read and providing a graceful fallb
 The interval created on line 45 is never cleaned up, which will cause a memory leak when the component unmounts.
 
 Fix:
-\`\`\`typescript
+```typescript
 useEffect(() => {
   const interval = setInterval(() => {
     // ...
@@ -188,7 +188,7 @@ useEffect(() => {
   
   return () => clearInterval(interval);
 }, []);
-\`\`\`
+```
 ```
 
 ## Your Responsibilities
