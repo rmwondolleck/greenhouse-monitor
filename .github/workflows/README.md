@@ -75,6 +75,20 @@ This directory contains GitHub Actions workflows that automate various tasks and
   - Auto-generates comprehensive workflow docs
   - Updates on agent or workflow changes
 
+#### 9. **create-issues.yml** - Create Issues from Templates
+- **Triggers**: Manual workflow dispatch
+- **Purpose**: Bulk-create GitHub issues from markdown templates
+- **Modes**:
+  - `dry-run`: Preview what will be created
+  - `create-all`: Create all issue templates
+  - `create-high-priority`: Create only high-priority issues
+  - Specific file: Create a single issue by filename
+- **Features**:
+  - Parses issue templates in `docs/github-issues/`
+  - Checks for duplicates before creating
+  - Supports labels and milestones
+  - Rate limiting to respect GitHub API
+
 ## 🎯 Using the Workflows
 
 ### Automatic Workflows
@@ -121,6 +135,20 @@ These can be run manually from the Actions tab:
    - Regenerates workflow documentation
    - Updates AGENT_WORKFLOWS.md
    ```
+
+4. **Create Issues from Templates**:
+   ```
+   Actions → Create Issues from Templates → Run workflow
+   - Choose mode: dry-run, create-all, or create-high-priority
+   - Optional: specify a single issue file
+   - Creates issues with proper labels and formatting
+   ```
+   
+   **Modes:**
+   - `dry-run`: Preview issues without creating them
+   - `create-all`: Create all 7 issue templates
+   - `create-high-priority`: Create only issues #1, #2, #3
+   - Specific file: Enter filename like `ISSUE_01_local_storage_mqtt_reliability.md`
 
 ## 🏷️ Label System
 

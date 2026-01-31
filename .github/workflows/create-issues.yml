@@ -1,0 +1,150 @@
+name: Create Issues from Templates
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Creation mode'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run
+          - create-all
+          - create-high-priority
+      specific_file:
+        description: 'Specific issue file (optional, e.g., ISSUE_01_local_storage_mqtt_reliability.md)'
+        required: false
+        type: string
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  create-issues:
+    name: Create GitHub Issues
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Dry Run - Preview Issues
+        if: inputs.mode == 'dry-run'
+        run: npm run create-issues:dry-run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create All Issues
+        if: inputs.mode == 'create-all'
+        run: npm run create-issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create High Priority Issues
+        if: inputs.mode == 'create-high-priority'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            const issuesDir = path.join(process.cwd(), 'docs', 'github-issues');
+            const highPriorityFiles = [
+              'ISSUE_01_local_storage_mqtt_reliability.md',
+              'ISSUE_02_homeassistant_integration.md',
+              'ISSUE_03_k8s_mariadb.md'
+            ];
+            
+            console.log('Creating high-priority issues...\n');
+            
+            for (const filename of highPriorityFiles) {
+              const filePath = path.join(issuesDir, filename);
+              if (!fs.existsSync(filePath)) {
+                console.log(`⚠️  Skipping ${filename} - file not found`);
+                continue;
+              }
+              
+              const content = fs.readFileSync(filePath, 'utf-8');
+              const lines = content.split('\n');
+              
+              // Parse title
+              let title = '';
+              let labels = [];
+              let bodyStart = 0;
+              
+              for (let i = 0; i < lines.length; i++) {
+                if (lines[i].startsWith('# ') && !title) {
+                  title = lines[i].substring(2).trim();
+                }
+                if (lines[i].startsWith('## Labels')) {
+                  const labelsLine = lines[i + 1];
+                  if (labelsLine) {
+                    labels = labelsLine.split(',').map(l => l.trim().replace(/`/g, '')).filter(l => l);
+                  }
+                }
+                if (lines[i].startsWith('## Description')) {
+                  bodyStart = i;
+                  break;
+                }
+              }
+              
+              const body = lines.slice(bodyStart).join('\n').trim();
+              
+              // Check if issue exists
+              const existingIssues = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'all',
+                per_page: 100
+              });
+              
+              if (existingIssues.data.some(issue => issue.title === title)) {
+                console.log(`⏭️  Skipped: ${title} (already exists)`);
+                continue;
+              }
+              
+              // Create issue
+              try {
+                const result = await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: title,
+                  body: body,
+                  labels: labels
+                });
+                console.log(`✅ Created: #${result.data.number} - ${title}`);
+              } catch (error) {
+                console.error(`❌ Failed to create ${title}:`, error.message);
+              }
+              
+              // Rate limiting
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+      - name: Create Specific Issue
+        if: inputs.specific_file != ''
+        run: npm run create-issues -- --file=${{ inputs.specific_file }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          echo "## Issue Creation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Mode**: ${{ inputs.mode }}" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ inputs.specific_file }}" ]; then
+            echo "**Specific File**: ${{ inputs.specific_file }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for detailed results." >> $GITHUB_STEP_SUMMARY

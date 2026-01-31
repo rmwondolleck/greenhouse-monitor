@@ -116,6 +116,7 @@ Located in `.github/agents/`, these agents provide specialized assistance:
 - **🧠 Brainstorming Agent**: Explore ideas, plan features, think through technical decisions
 - **💻 Coding Agent**: Write, modify, and improve code with deep project knowledge
 - **🔍 Code Review Agent**: Review changes for quality, security, and best practices
+- **🎫 Issue Creator Agent**: Review and create GitHub issues from markdown templates
 
 ### Automated Workflows
 
@@ -128,7 +129,15 @@ GitHub Actions workflows automatically assist with:
 
 ### Issue Creator Agent
 
-The project includes a powerful CLI tool for bulk-creating GitHub issues from markdown templates:
+**Interactive (Recommended)**: Use the custom agent in GitHub Copilot Chat for guided issue creation:
+
+```
+@issue-creator Review all issue templates and show priorities
+@issue-creator Create all high-priority issues
+@issue-creator Create issue #1 about MQTT reliability
+```
+
+**Command Line**: Use the CLI tool for bulk operations:
 
 ```bash
 # Preview what will be created
@@ -144,10 +153,10 @@ npm run create-issues -- --file=ISSUE_01_local_storage_mqtt_reliability.md
 **Features:**
 - ✅ Automatically parses issue templates with labels and milestones
 - ✅ Checks for existing issues to avoid duplicates
-- ✅ Dry-run mode for safe testing
-- ✅ Rate limiting to respect GitHub API limits
+- ✅ Explains priorities and dependencies
+- ✅ Interactive or batch creation modes
 
-See [scripts/README.md](scripts/README.md) for setup and usage details.
+See [scripts/README.md](scripts/README.md) for CLI setup and [.github/agents/issue-creator.md](.github/agents/issue-creator.md) for agent usage.
 
 ### Using the Agents
 
@@ -156,6 +165,7 @@ In GitHub Copilot Chat, reference agents with:
 @brainstorming How should we add temperature alerts?
 @coding Implement a new endpoint for sensor history
 @code-review Review the changes in server.ts
+@issue-creator Show me all available issues and their priorities
 ```
 
 ### Quick Start with Workflows
