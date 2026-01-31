@@ -201,7 +201,7 @@ async function issueExists(title: string): Promise<boolean> {
     }
     
     const issues = await response.json() as GitHubIssue[];
-    return issues.some((issue) => issue.title === title);
+    return issues.some((existingIssue) => existingIssue.title === title);
   } catch (error) {
     console.warn(`⚠️  Error checking existing issues:`, error);
     return false;
