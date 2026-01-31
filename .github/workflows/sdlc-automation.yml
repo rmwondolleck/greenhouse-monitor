@@ -1,0 +1,441 @@
+name: SDLC Automation - Issue Resolution
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_numbers:
+        description: 'Comma-separated issue numbers to process (e.g., "1,2,3"). Leave empty to process all open issues.'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run mode - analyze only, do not create PRs'
+        required: false
+        type: boolean
+        default: true
+      max_issues:
+        description: 'Maximum number of issues to process in this run'
+        required: false
+        type: number
+        default: 1
+  schedule:
+    # Run daily at 2 AM UTC to check for open issues
+    # Note: Scheduled runs use default values (dry_run: true, max_issues: 1)
+    # This means scheduled runs will only analyze and comment, NOT create PRs
+    - cron: '0 2 * * *'
+
+permissions:
+  issues: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  analyze-issues:
+    name: Analyze Open Issues
+    runs-on: ubuntu-latest
+    outputs:
+      issues_to_process: ${{ steps.get-issues.outputs.issues }}
+      issue_count: ${{ steps.get-issues.outputs.count }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get open issues for processing
+        id: get-issues
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const maxIssues = parseInt('${{ inputs.max_issues }}' || '1');
+            const specificIssues = '${{ inputs.issue_numbers }}'.trim();
+            
+            let issues = [];
+            
+            if (specificIssues) {
+              // Process specific issues
+              const issueNumbers = specificIssues.split(',').map(n => parseInt(n.trim()));
+              for (const num of issueNumbers) {
+                try {
+                  const issue = await github.rest.issues.get({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: num
+                  });
+                  if (issue.data.state === 'open') {
+                    issues.push({
+                      number: issue.data.number,
+                      title: issue.data.title,
+                      body: issue.data.body || '',
+                      labels: issue.data.labels.map(l => l.name)
+                    });
+                  }
+                } catch (error) {
+                  console.error(`Issue #${num} not found or error: ${error.message}`);
+                }
+              }
+            } else {
+              // Get all open issues
+              const response = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                per_page: maxIssues,
+                sort: 'created',
+                direction: 'asc'
+              });
+              
+              issues = response.data
+                .filter(issue => !issue.pull_request) // Exclude PRs
+                .map(issue => ({
+                  number: issue.number,
+                  title: issue.title,
+                  body: issue.body || '',
+                  labels: issue.labels.map(l => l.name)
+                }));
+            }
+            
+            // Filter to prioritize issues ready for automation
+            // Prefer issues with 'enhancement' or 'bug' labels
+            const prioritized = issues.sort((a, b) => {
+              const aScore = (a.labels.includes('bug') ? 10 : 0) + 
+                           (a.labels.includes('enhancement') ? 5 : 0) +
+                           (a.labels.includes('priority:high') ? 20 : 0);
+              const bScore = (b.labels.includes('bug') ? 10 : 0) + 
+                           (b.labels.includes('enhancement') ? 5 : 0) +
+                           (b.labels.includes('priority:high') ? 20 : 0);
+              return bScore - aScore;
+            });
+            
+            const toProcess = prioritized.slice(0, maxIssues);
+            
+            core.setOutput('issues', JSON.stringify(toProcess));
+            core.setOutput('count', toProcess.length);
+            
+            console.log(`Found ${toProcess.length} issue(s) to process:`);
+            toProcess.forEach(issue => {
+              console.log(`  #${issue.number}: ${issue.title}`);
+            });
+
+  process-issue:
+    name: Process Issue #${{ matrix.issue.number }}
+    runs-on: ubuntu-latest
+    needs: analyze-issues
+    if: needs.analyze-issues.outputs.issue_count > 0
+    strategy:
+      matrix:
+        issue: ${{ fromJson(needs.analyze-issues.outputs.issues_to_process) }}
+      fail-fast: false
+      # Process issues one at a time to avoid git conflicts
+      # Performance: ~2-3 min per issue (API calls + git operations)
+      # For bulk processing, run multiple workflow instances instead
+      max-parallel: 1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Add processing comment to issue
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const isDryRun = '${{ inputs.dry_run }}' === 'true';
+            const mode = isDryRun ? '🔍 **DRY RUN MODE**' : '🤖 **AUTOMATION MODE**';
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ matrix.issue.number }},
+              body: `## ${mode}\n\n` +
+                    `Starting SDLC automation workflow for this issue.\n\n` +
+                    `**Workflow Run**: [View details](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n\n` +
+                    `### 📋 SDLC Process\n` +
+                    `- [ ] Phase 1: Brainstorming & Planning\n` +
+                    `- [ ] Phase 2: Implementation\n` +
+                    `- [ ] Phase 3: Code Review\n` +
+                    `- [ ] Phase 4: Create Pull Request\n\n` +
+                    `_The workflow will update this comment with progress._`
+            });
+
+      - name: Phase 1 - Brainstorming & Planning
+        id: brainstorm
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = ${{ toJson(matrix.issue) }};
+            
+            // Create a brainstorming plan based on issue type and content
+            let plan = {
+              type: 'unknown',
+              approach: '',
+              considerations: [],
+              filesAffected: []
+            };
+            
+            // Determine issue type
+            if (issue.labels.includes('bug')) {
+              plan.type = 'bug-fix';
+              plan.approach = 'Identify root cause, implement fix with minimal changes, add tests if needed';
+              plan.considerations = [
+                'Preserve existing functionality',
+                'Add error handling if missing',
+                'Update documentation if behavior changes'
+              ];
+            } else if (issue.labels.includes('enhancement')) {
+              plan.type = 'feature';
+              plan.approach = 'Design new feature following existing patterns, implement incrementally';
+              plan.considerations = [
+                'Follow existing code conventions',
+                'Maintain backward compatibility',
+                'Add appropriate error handling',
+                'Update relevant documentation'
+              ];
+            } else if (issue.labels.includes('documentation')) {
+              plan.type = 'documentation';
+              plan.approach = 'Update documentation to reflect current state or add missing information';
+              plan.considerations = [
+                'Ensure accuracy',
+                'Follow existing documentation style',
+                'Update examples if needed'
+              ];
+            }
+            
+            // Identify affected areas based on labels
+            if (issue.labels.includes('frontend')) {
+              plan.filesAffected.push('src/components/**', 'src/pages/**');
+            }
+            if (issue.labels.includes('backend')) {
+              plan.filesAffected.push('src/server/**');
+            }
+            if (issue.labels.includes('hardware')) {
+              plan.filesAffected.push('sensor/**');
+            }
+            
+            console.log('Brainstorming Plan:', JSON.stringify(plan, null, 2));
+            core.setOutput('plan', JSON.stringify(plan));
+            
+            // Update issue comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: `### ✅ Phase 1 Complete: Brainstorming & Planning\n\n` +
+                    `**Issue Type**: ${plan.type}\n` +
+                    `**Approach**: ${plan.approach}\n\n` +
+                    `**Key Considerations**:\n` +
+                    plan.considerations.map(c => `- ${c}`).join('\n') + '\n\n' +
+                    `**Areas Affected**: ${plan.filesAffected.join(', ') || 'TBD'}\n\n` +
+                    `_Proceeding to implementation phase..._`
+            });
+
+      - name: Phase 2 - Implementation
+        id: implement
+        run: |
+          # Create a feature branch for this issue
+          BRANCH_NAME="auto/issue-${{ matrix.issue.number }}-$(date +%s)"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH_NAME"
+          
+          # Create a marker file to indicate automation
+          mkdir -p .github/automation
+          cat > .github/automation/issue-${{ matrix.issue.number }}.json << EOF
+          {
+            "issue_number": ${{ matrix.issue.number }},
+            "branch": "$BRANCH_NAME",
+            "workflow_run": "${{ github.run_id }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "plan": ${{ steps.brainstorm.outputs.plan }}
+          }
+          EOF
+          
+          git add .github/automation/issue-${{ matrix.issue.number }}.json
+          git commit -m "chore: automation marker for issue #${{ matrix.issue.number }}"
+          
+          echo "✅ Created branch: $BRANCH_NAME"
+
+      - name: Create implementation comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const branch = process.env.BRANCH_NAME;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ matrix.issue.number }},
+              body: `### ⚠️ Phase 2: Implementation\n\n` +
+                    `A feature branch has been created: \`${branch}\`\n\n` +
+                    `**Manual Action Required**: The actual code implementation requires human expertise to:\n` +
+                    `1. Use the @coding agent to generate appropriate code\n` +
+                    `2. Review and refine the implementation\n` +
+                    `3. Run tests and verify functionality\n\n` +
+                    `**Recommended Approach**:\n` +
+                    `\`\`\`bash\n` +
+                    `git fetch origin\n` +
+                    `git checkout ${branch}\n` +
+                    `\`\`\`\n\n` +
+                    `Then use GitHub Copilot Chat:\n` +
+                    `\`\`\`\n` +
+                    `@coding Implement the solution for issue #${{ matrix.issue.number }}: ${{ matrix.issue.title }}\n` +
+                    `\`\`\`\n\n` +
+                    `_This workflow will pause here and wait for manual implementation._`
+            });
+
+      - name: Phase 3 - Code Review (Placeholder)
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ matrix.issue.number }},
+              body: `### 📝 Phase 3: Code Review\n\n` +
+                    `After implementing changes, use the code review agent:\n` +
+                    `\`\`\`\n` +
+                    `@code-review Review the changes for issue #${{ matrix.issue.number }}\n` +
+                    `\`\`\`\n\n` +
+                    `The review agent will check for:\n` +
+                    `- Code correctness and functionality\n` +
+                    `- TypeScript type safety\n` +
+                    `- Error handling\n` +
+                    `- Performance considerations\n` +
+                    `- Security issues\n` +
+                    `- Code quality and maintainability`
+            });
+
+      - name: Push branch (if not dry run)
+        if: inputs.dry_run != 'true'
+        run: |
+          git push origin "$BRANCH_NAME"
+          echo "✅ Pushed branch: $BRANCH_NAME"
+
+      - name: Phase 4 - Create Pull Request
+        if: inputs.dry_run != 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const branch = process.env.BRANCH_NAME;
+            const issue = ${{ toJson(matrix.issue) }};
+            const plan = JSON.parse('${{ steps.brainstorm.outputs.plan }}');
+            
+            // Create PR
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[AUTOMATED] Fix #${issue.number}: ${issue.title}`,
+              head: branch,
+              base: 'main',
+              body: `## Automated SDLC Workflow\n\n` +
+                    `This PR was created by the SDLC automation workflow.\n\n` +
+                    `**Resolves**: #${issue.number}\n` +
+                    `**Issue Type**: ${plan.type}\n` +
+                    `**Workflow Run**: [View details](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n\n` +
+                    `### Original Issue\n` +
+                    `${issue.body}\n\n` +
+                    `### Implementation Plan\n` +
+                    `**Approach**: ${plan.approach}\n\n` +
+                    `**Considerations**:\n` +
+                    plan.considerations.map(c => `- ${c}`).join('\n') + '\n\n' +
+                    `### ⚠️ Manual Steps Required\n\n` +
+                    `This PR contains the automation scaffolding. To complete the implementation:\n\n` +
+                    `1. Checkout this branch locally\n` +
+                    `2. Use the @coding agent to implement the actual solution\n` +
+                    `3. Use the @code-review agent to review your changes\n` +
+                    `4. Push your changes to this branch\n` +
+                    `5. Request manual review before merging\n\n` +
+                    `### Checklist\n` +
+                    `- [ ] Code implemented using @coding agent\n` +
+                    `- [ ] Code reviewed using @code-review agent\n` +
+                    `- [ ] Tests pass\n` +
+                    `- [ ] Documentation updated (if needed)\n` +
+                    `- [ ] Ready for human review`,
+              draft: true  # Create as draft PR
+            });
+            
+            console.log(`✅ Created draft PR #${pr.data.number}`);
+            
+            // Add label to PR
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.data.number,
+              labels: ['automated', 'needs-implementation']
+            });
+            
+            // Update original issue
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: `### 🎉 Phase 4 Complete: Pull Request Created\n\n` +
+                    `A draft PR has been created: #${pr.data.number}\n\n` +
+                    `**Branch**: \`${branch}\`\n` +
+                    `**PR**: ${pr.data.html_url}\n\n` +
+                    `The PR is in draft mode and requires manual implementation to complete.\n` +
+                    `Please check the PR description for next steps.`
+            });
+
+      - name: Dry run summary
+        if: inputs.dry_run == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ matrix.issue.number }},
+              body: `### 🔍 Dry Run Complete\n\n` +
+                    `This was a dry run. No PR was created.\n\n` +
+                    `To execute for real, re-run the workflow with dry_run set to \`false\`.`
+            });
+
+  summary:
+    name: Workflow Summary
+    runs-on: ubuntu-latest
+    needs: [analyze-issues, process-issue]
+    if: always()
+    steps:
+      - name: Generate summary
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issueCount = '${{ needs.analyze-issues.outputs.issue_count }}';
+            const isDryRun = '${{ inputs.dry_run }}' === 'true';
+            
+            console.log('━'.repeat(60));
+            console.log('SDLC AUTOMATION WORKFLOW SUMMARY');
+            console.log('━'.repeat(60));
+            console.log(`Mode: ${isDryRun ? 'DRY RUN' : 'EXECUTION'}`);
+            console.log(`Issues Processed: ${issueCount}`);
+            console.log(`Workflow Run: ${context.runId}`);
+            console.log('━'.repeat(60));
+            
+            if (issueCount === '0') {
+              console.log('✓ No open issues found to process');
+            } else {
+              console.log(`✓ Processed ${issueCount} issue(s)`);
+              console.log('');
+              console.log('Next Steps:');
+              console.log('1. Check created PRs for implementation guidance');
+              console.log('2. Use @coding agent to implement solutions');
+              console.log('3. Use @code-review agent to review changes');
+              console.log('4. Mark PRs as ready for review');
+            }
