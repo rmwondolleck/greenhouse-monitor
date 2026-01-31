@@ -284,4 +284,5 @@ data
 .idea/*
 
 ai-docs
-ai-docs/*actionlint
+ai-docs/*
+actionlint
