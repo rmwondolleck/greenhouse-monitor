@@ -20,6 +20,15 @@ GitHub UI → Actions → Label Management → Run workflow
 GitHub UI → Actions → Agent Workflow Documentation → Run workflow
 ```
 
+#### SDLC Automation (Issue Resolution)
+```
+GitHub UI → Actions → SDLC Automation - Issue Resolution → Run workflow
+Configure:
+  - issue_numbers: (empty for all, or "1,2,3" for specific)
+  - dry_run: true (preview) or false (execute)
+  - max_issues: 1 (or more)
+```
+
 ## 🏷️ Label Quick Reference
 
 | Label | Color | Use Case |

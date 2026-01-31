@@ -89,6 +89,22 @@ This directory contains GitHub Actions workflows that automate various tasks and
   - Supports labels and milestones
   - Rate limiting to respect GitHub API
 
+#### 10. **sdlc-automation.yml** - SDLC Automation for Issue Resolution
+- **Triggers**: Manual workflow dispatch, scheduled daily at 2 AM UTC
+- **Purpose**: Automate the complete SDLC for resolving issues using custom agents
+- **Features**:
+  - Analyzes and prioritizes open issues
+  - Creates brainstorming plans (Phase 1)
+  - Sets up feature branches with scaffolding (Phase 2)
+  - Provides code review guidance (Phase 3)
+  - Creates draft PRs with implementation checklists (Phase 4)
+  - Integrates with @brainstorming, @coding, and @code-review agents
+- **Modes**:
+  - `dry-run`: Preview the process without creating PRs
+  - Process specific issues or all open issues
+  - Configurable max issues per run
+- **See**: [SDLC Automation Documentation](../SDLC_AUTOMATION.md)
+
 ## 🎯 Using the Workflows
 
 ### Automatic Workflows
@@ -149,6 +165,22 @@ These can be run manually from the Actions tab:
    - `create-all`: Create all 7 issue templates
    - `create-high-priority`: Create only issues #1, #2, #3
    - Specific file: Enter filename like `ISSUE_01_local_storage_mqtt_reliability.md`
+
+5. **SDLC Automation**:
+   ```
+   Actions → SDLC Automation - Issue Resolution → Run workflow
+   - Choose specific issues or process all open issues
+   - Set dry_run to preview without creating PRs
+   - Configure max_issues to limit processing
+   - Workflow will follow complete SDLC for each issue
+   ```
+   
+   **Options:**
+   - `issue_numbers`: Comma-separated list (e.g., "1,2,3") or empty for all
+   - `dry_run`: true (preview) or false (execute)
+   - `max_issues`: Maximum number of issues to process (default: 1)
+   
+   **See**: [SDLC Automation Guide](../SDLC_AUTOMATION.md) for detailed usage
 
 ## 🏷️ Label System
 
