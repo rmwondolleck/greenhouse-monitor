@@ -1,0 +1,133 @@
+name: Issue Triage and Labeling
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  auto-label:
+    name: Auto-label Issue
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Auto-label based on content
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title.toLowerCase();
+            const body = (issue.body || '').toLowerCase();
+            const labels = [];
+
+            // Feature or enhancement detection
+            if (title.includes('feature') || title.includes('enhancement') || 
+                body.includes('new feature') || body.includes('enhancement')) {
+              labels.push('enhancement');
+              labels.push('needs-brainstorming');
+            }
+
+            // Bug detection
+            if (title.includes('bug') || title.includes('error') || title.includes('fix') ||
+                body.includes('bug') || body.includes('error') || body.includes('broken')) {
+              labels.push('bug');
+              labels.push('needs-investigation');
+            }
+
+            // Documentation detection
+            if (title.includes('doc') || title.includes('readme') ||
+                body.includes('documentation')) {
+              labels.push('documentation');
+            }
+
+            // Hardware related
+            if (body.includes('sensor') || body.includes('lcd') || body.includes('raspberry') ||
+                body.includes('dht11') || body.includes('hardware')) {
+              labels.push('hardware');
+            }
+
+            // Frontend related
+            if (body.includes('dashboard') || body.includes('react') || body.includes('ui') ||
+                body.includes('frontend') || body.includes('tailwind')) {
+              labels.push('frontend');
+            }
+
+            // Backend related
+            if (body.includes('server') || body.includes('api') || body.includes('backend') ||
+                body.includes('express') || body.includes('endpoint')) {
+              labels.push('backend');
+            }
+
+            // MQTT related
+            if (body.includes('mqtt') || body.includes('messaging')) {
+              labels.push('mqtt');
+            }
+
+            // Testing related
+            if (body.includes('test') || body.includes('testing')) {
+              labels.push('testing');
+            }
+
+            // Priority detection
+            if (title.includes('critical') || title.includes('urgent') ||
+                body.includes('critical') || body.includes('urgent')) {
+              labels.push('priority:high');
+            }
+
+            // Add labels if any were detected
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: labels
+              });
+
+              console.log(`Added labels: ${labels.join(', ')}`);
+            }
+
+      - name: Add agent workflow comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const issue = context.payload.issue;
+            const labels = issue.labels.map(l => l.name);
+            
+            let message = '## 🤖 Agent Workflow\n\n';
+            message += 'This issue has been automatically triaged. Here\'s the suggested workflow:\n\n';
+
+            if (labels.includes('needs-brainstorming')) {
+              message += '### 🧠 Step 1: Brainstorming\n';
+              message += 'Use the brainstorming agent to explore solutions:\n';
+              message += '```\n@brainstorming [Your question about this feature]\n```\n\n';
+            }
+
+            if (labels.includes('enhancement') || labels.includes('bug')) {
+              message += '### 💻 Step 2: Implementation\n';
+              message += 'Use the coding agent to implement the solution:\n';
+              message += '```\n@coding [Your implementation request]\n```\n\n';
+            }
+
+            message += '### 🔍 Step 3: Code Review\n';
+            message += 'Use the code review agent before merging:\n';
+            message += '```\n@code-review Review the changes in [file names]\n```\n\n';
+
+            message += '---\n';
+            message += '💡 **Tip**: Reference agent files in `.github/agents/` for detailed guidance on each agent\'s capabilities.';
+
+            // Only add comment if it's a new issue
+            if (context.payload.action === 'opened') {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: message
+              });
+            }

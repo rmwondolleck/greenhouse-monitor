@@ -1,0 +1,112 @@
+name: Agent Workflow Helper
+
+on:
+  workflow_dispatch:
+    inputs:
+      task_type:
+        description: 'Type of task'
+        required: true
+        type: choice
+        options:
+          - brainstorming
+          - implementation
+          - review
+          - documentation
+      description:
+        description: 'Brief description of the task'
+        required: true
+        type: string
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  create-workflow-issue:
+    name: Create Workflow Issue
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create workflow issue
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const taskType = '${{ inputs.task_type }}';
+            const description = '${{ inputs.description }}';
+            
+            let title = '';
+            let body = '';
+            let labels = [];
+
+            switch (taskType) {
+              case 'brainstorming':
+                title = `💭 Brainstorming: ${description}`;
+                body = `## 🧠 Brainstorming Task\n\n${description}\n\n`;
+                body += '### Suggested Approach\n\n';
+                body += '1. Use the brainstorming agent to explore ideas:\n';
+                body += '   ```\n   @brainstorming ${description}\n   ```\n\n';
+                body += '2. Document the chosen approach\n';
+                body += '3. Create implementation issues for the solution\n\n';
+                body += '---\n';
+                body += '📚 Reference: `.github/agents/brainstorming.md`';
+                labels = ['needs-brainstorming', 'enhancement'];
+                break;
+
+              case 'implementation':
+                title = `💻 Implementation: ${description}`;
+                body = `## 💻 Implementation Task\n\n${description}\n\n`;
+                body += '### Suggested Workflow\n\n';
+                body += '1. Use the coding agent to implement:\n';
+                body += '   ```\n   @coding ${description}\n   ```\n\n';
+                body += '2. Test in development mode\n';
+                body += '3. Create a PR with your changes\n';
+                body += '4. Use code review agent before merging\n\n';
+                body += '---\n';
+                body += '📚 Reference: `.github/agents/coding.md`';
+                labels = ['enhancement'];
+                break;
+
+              case 'review':
+                title = `🔍 Review: ${description}`;
+                body = `## 🔍 Code Review Task\n\n${description}\n\n`;
+                body += '### Review Checklist\n\n';
+                body += 'Use the code review agent:\n';
+                body += '```\n@code-review Review the changes in ${description}\n```\n\n';
+                body += '- [ ] Correctness and functionality\n';
+                body += '- [ ] TypeScript type safety\n';
+                body += '- [ ] Error handling\n';
+                body += '- [ ] Performance\n';
+                body += '- [ ] Security\n';
+                body += '- [ ] Hardware considerations\n\n';
+                body += '---\n';
+                body += '📚 Reference: `.github/agents/code-review.md`';
+                labels = ['code-review'];
+                break;
+
+              case 'documentation':
+                title = `📚 Documentation: ${description}`;
+                body = `## 📚 Documentation Task\n\n${description}\n\n`;
+                body += '### What to Document\n\n';
+                body += '- [ ] Update relevant README sections\n';
+                body += '- [ ] Add code comments if needed\n';
+                body += '- [ ] Update agent files if applicable\n';
+                body += '- [ ] Include usage examples\n\n';
+                body += '---\n';
+                body += 'Use the coding agent to help with documentation updates.';
+                labels = ['documentation'];
+                break;
+            }
+
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: labels
+            });
+
+            console.log(`Created issue #${issue.data.number}: ${title}`);
+            core.setOutput('issue_number', issue.data.number);

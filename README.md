@@ -16,6 +16,8 @@ Greenhouse Monitor is a full-stack TypeScript application for monitoring and rec
 - Beautiful React dashboard with responsive design using Tailwind CSS
 - Historical data logging with configurable intervals
 - Development mode with hardware simulation for testing without a Raspberry Pi
+- **AI-Powered Development**: Custom GitHub Copilot agents for brainstorming, coding, and code review
+- **Automated Workflows**: GitHub Actions integration for issue triage, PR reviews, and deployment
 
 ## Hardware Requirements
 
@@ -102,3 +104,45 @@ sudo systemctl stop greenhouse-monitor
 ### Development Environment (Simulated Hardware)
 
 For development on computers without connected sensors:
+
+## 🤖 AI-Powered Development Workflow
+
+This project includes custom GitHub Copilot agents and automated workflows to streamline development.
+
+### Custom Agents
+
+Located in `.github/agents/`, these agents provide specialized assistance:
+
+- **🧠 Brainstorming Agent**: Explore ideas, plan features, think through technical decisions
+- **💻 Coding Agent**: Write, modify, and improve code with deep project knowledge
+- **🔍 Code Review Agent**: Review changes for quality, security, and best practices
+
+### Automated Workflows
+
+GitHub Actions workflows automatically assist with:
+
+- **Issue Triage**: Auto-labels issues based on content and suggests agent workflows
+- **PR Reviews**: Adds review checklists and reminders to use code review agent
+- **Deployment**: Updates issues and notifies about deployment status after merges
+- **Label Management**: Maintains consistent labeling system across repository
+
+### Using the Agents
+
+In GitHub Copilot Chat, reference agents with:
+```
+@brainstorming How should we add temperature alerts?
+@coding Implement a new endpoint for sensor history
+@code-review Review the changes in server.ts
+```
+
+### Quick Start with Workflows
+
+1. **Create an issue** → Gets auto-labeled with suggested workflow
+2. **Use suggested agent** → Get guidance on implementation
+3. **Create PR** → Receives review checklist automatically
+4. **Merge** → Related issues updated with deployment info
+
+For detailed workflow documentation, see:
+- [Workflow Guide](.github/workflows/README.md)
+- [Agent Documentation](.github/agents/README.md)
+- [Agent Workflows](.github/AGENT_WORKFLOWS.md) (auto-generated)
