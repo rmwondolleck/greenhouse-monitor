@@ -30,29 +30,29 @@ jobs:
 
             const message = `## 🔍 Code Review Checklist
 
-Before merging this PR, please use the code review agent to ensure quality:
+            Before merging this PR, please use the code review agent to ensure quality:
 
-\`\`\`
-@code-review Review the changes in this PR
-\`\`\`
+            \\\`\\\`\\\`
+            @code-review Review the changes in this PR
+            \\\`\\\`\\\`
 
-### Review Focus Areas
-- [ ] Correctness and functionality
-- [ ] TypeScript type safety
-- [ ] Error handling
-- [ ] Performance and resource usage
-- [ ] Security considerations
-- [ ] Hardware integration (if applicable)
-- [ ] Code quality and maintainability
+            ### Review Focus Areas
+            - [ ] Correctness and functionality
+            - [ ] TypeScript type safety
+            - [ ] Error handling
+            - [ ] Performance and resource usage
+            - [ ] Security considerations
+            - [ ] Hardware integration (if applicable)
+            - [ ] Code quality and maintainability
 
-### Testing
-- [ ] Tested in development mode (mocked hardware)
-- [ ] Tested on Raspberry Pi (if hardware changes)
-- [ ] Build passes successfully
-- [ ] Type checks pass
+            ### Testing
+            - [ ] Tested in development mode (mocked hardware)
+            - [ ] Tested on Raspberry Pi (if hardware changes)
+            - [ ] Build passes successfully
+            - [ ] Type checks pass
 
----
-📚 **Reference**: See \`.github/agents/code-review.md\` for detailed review guidelines.`;
+            ---
+            📚 **Reference**: See \\\`.github/agents/code-review.md\\\` for detailed review guidelines.`;
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -104,4 +104,3 @@ Before merging this PR, please use the code review agent to ensure quality:
                 labels: labels
               });
             }
-
