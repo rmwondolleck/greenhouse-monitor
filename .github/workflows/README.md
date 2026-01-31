@@ -115,6 +115,73 @@ This directory contains GitHub Actions workflows that automate various tasks and
   - Configurable max issues per run
 - **See**: [SDLC Automation Documentation](../SDLC_AUTOMATION.md)
 
+### CI/CD Workflows
+
+#### 11. **ci.yml** - Continuous Integration
+- **Triggers**: PRs to main, push to main, manual dispatch
+- **Purpose**: Comprehensive CI pipeline for code validation
+- **Features**:
+  - TypeScript type checking (strict mode)
+  - Build verification (server and client)
+  - Test execution (mock sensors)
+  - Security audit (npm audit)
+  - Build artifact upload
+  - CI summary report
+- **Jobs**:
+  - Lint and typecheck
+  - Build application
+  - Run tests
+  - Security scan
+  - Generate summary
+
+#### 12. **cd.yml** - Continuous Deployment
+- **Triggers**: Push to main, manual dispatch
+- **Purpose**: Automated deployment to Raspberry Pi
+- **Features**:
+  - Full build process
+  - Deployment package creation
+  - Artifact upload with retention
+  - Automatic issue commenting for deployed changes
+  - Deployment status notifications
+- **Environment**: Production (configurable)
+
+#### 13. **code-quality.yml** - Code Quality Checks
+- **Triggers**: PRs to main, push to main, weekly schedule, manual
+- **Purpose**: Monitor and maintain code quality
+- **Features**:
+  - TypeScript quality analysis
+  - Dependency review (PRs only)
+  - Code metrics (lines of code, structure)
+  - Build size analysis
+  - Security scanning (secrets detection)
+  - Quality score calculation
+- **Schedule**: Weekly on Mondays at 9 AM UTC
+
+#### 14. **release.yml** - Release Management
+- **Triggers**: Version tags (v*.*.*), manual dispatch
+- **Purpose**: Create versioned releases with packages
+- **Features**:
+  - Full test and build pipeline
+  - Release package creation (.tar.gz)
+  - Deployment script generation
+  - SHA256 checksums
+  - Automated release notes
+  - GitHub release creation
+- **Package Contents**: Built artifacts, dependencies, documentation, deploy script
+
+#### 15. **health-check.yml** - Repository Health Check
+- **Triggers**: Weekly schedule (Mondays 8 AM UTC), manual dispatch
+- **Purpose**: Proactive repository health monitoring
+- **Features**:
+  - Outdated dependency detection
+  - Security vulnerability scanning
+  - Build status validation
+  - Documentation completeness check
+  - Workflow inventory
+  - Health score calculation (0-100)
+  - Auto-creates issues for critical problems
+- **Auto-Issue Creation**: Creates issues for build failures or security vulnerabilities
+
 ## 🎯 Using the Workflows
 
 ### Automatic Workflows
@@ -191,6 +258,26 @@ These can be run manually from the Actions tab:
    - `max_issues`: Maximum number of issues to process (default: 1)
    
    **See**: [SDLC Automation Guide](../SDLC_AUTOMATION.md) for detailed usage
+
+6. **Repository Health Check**:
+   ```
+   Actions → Repository Health Check → Run workflow
+   - Scans for outdated dependencies
+   - Checks for security vulnerabilities
+   - Validates build status
+   - Reviews documentation
+   - Generates health score
+   - Auto-creates issues for critical problems
+   ```
+
+7. **Create Release**:
+   ```
+   Actions → Release → Run workflow
+   - Enter version number (e.g., v1.0.0)
+   - Creates GitHub release
+   - Generates release packages
+   - Includes deployment scripts
+   ```
 
 ## 🏷️ Label System
 
