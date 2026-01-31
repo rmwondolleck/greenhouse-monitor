@@ -126,6 +126,29 @@ GitHub Actions workflows automatically assist with:
 - **Deployment**: Updates issues and notifies about deployment status after merges
 - **Label Management**: Maintains consistent labeling system across repository
 
+### Issue Creator Agent
+
+The project includes a powerful CLI tool for bulk-creating GitHub issues from markdown templates:
+
+```bash
+# Preview what will be created
+npm run create-issues:dry-run
+
+# Create all issues from templates
+npm run create-issues
+
+# Create a specific issue
+npm run create-issues -- --file=ISSUE_01_local_storage_mqtt_reliability.md
+```
+
+**Features:**
+- ✅ Automatically parses issue templates with labels and milestones
+- ✅ Checks for existing issues to avoid duplicates
+- ✅ Dry-run mode for safe testing
+- ✅ Rate limiting to respect GitHub API limits
+
+See [scripts/README.md](scripts/README.md) for setup and usage details.
+
 ### Using the Agents
 
 In GitHub Copilot Chat, reference agents with:
