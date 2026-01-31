@@ -49,6 +49,32 @@ This directory contains custom agent configurations for GitHub Copilot to assist
 - "Check this new component for memory leaks"
 - "Review this PR for security and performance issues"
 
+### 🎫 Issue Creator Agent (`issue-creator.md`)
+**Purpose**: Review, customize, and create GitHub issues from markdown templates in `docs/github-issues/`.
+
+**Use this agent when:**
+- Reviewing available issue templates
+- Creating issues from pre-written templates
+- Understanding issue priorities and dependencies
+- Deciding which issues to tackle first
+- Batch-creating multiple related issues
+
+**Example prompts:**
+- "Review all issue templates and show me what's available"
+- "Create all high-priority issues"
+- "Create issue #1 about MQTT reliability"
+- "What issues should I create first and why?"
+- "Show me the dependencies between issues"
+
+**Features:**
+- ✅ Parses issue templates to extract metadata
+- ✅ Checks for existing issues to avoid duplicates
+- ✅ Explains priorities and implementation order
+- ✅ Can create issues one-by-one or in bulk
+- ✅ Provides guidance on issue dependencies
+
+**Note**: This agent can guide you through using the TypeScript script (`npm run create-issues`) or help you create issues interactively.
+
 ## How to Use These Agents
 
 ### In GitHub Copilot Chat
