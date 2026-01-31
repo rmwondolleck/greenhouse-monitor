@@ -1,0 +1,227 @@
+name: Agent Workflow Documentation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/agents/**'
+      - '.github/workflows/agent-*.yml'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-agent-docs:
+    name: Update Agent Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate workflow documentation
+        run: |
+          cat > /tmp/AGENT_WORKFLOWS.md << 'EOF'
+          # GitHub Actions Agent Workflows
+
+          This document describes the GitHub Actions workflows that integrate with the project's custom agents.
+
+          ## 🤖 Available Workflows
+
+          ### 1. Issue Triage and Labeling
+          **Workflow**: `.github/workflows/issue-triage.yml`
+
+          **Triggers**: When issues are opened or edited
+
+          **What it does**:
+          - Automatically labels issues based on content
+          - Detects issue type (bug, enhancement, documentation)
+          - Identifies affected components (frontend, backend, hardware)
+          - Suggests agent workflow based on issue type
+          - Adds guidance comments to help contributors
+
+          **Labels Applied**:
+          - Type: `bug`, `enhancement`, `documentation`
+          - Component: `frontend`, `backend`, `hardware`, `mqtt`, `testing`
+          - Workflow: `needs-brainstorming`, `needs-investigation`
+          - Priority: `priority:high`, `priority:medium`, `priority:low`
+
+          ### 2. PR Review Reminder
+          **Workflow**: `.github/workflows/pr-review-reminder.yml`
+
+          **Triggers**: When PRs are opened or updated
+
+          **What it does**:
+          - Adds code review checklist to new PRs
+          - Reminds contributors to use code review agent
+          - Auto-labels PRs based on content
+          - Provides testing guidance
+
+          ### 3. Agent Workflow Helper
+          **Workflow**: `.github/workflows/agent-helper.yml`
+
+          **Triggers**: Manual workflow dispatch
+
+          **What it does**:
+          - Creates structured issues for different task types
+          - Provides agent-specific guidance
+          - Links to relevant agent documentation
+          - Sets up proper labels and workflow
+
+          **Usage**:
+          ```bash
+          # Via GitHub UI: Actions → Agent Workflow Helper → Run workflow
+          # Select task type: brainstorming, implementation, review, or documentation
+          # Enter task description
+          ```
+
+          ### 4. Label Management
+          **Workflow**: `.github/workflows/label-management.yml`
+
+          **Triggers**: Manual dispatch or when workflow file changes
+
+          **What it does**:
+          - Creates all required labels
+          - Updates label colors and descriptions
+          - Ensures consistency across the repository
+
+          **To run manually**:
+          ```bash
+          # Via GitHub UI: Actions → Label Management → Run workflow
+          ```
+
+          ### 5. Post-Merge Actions
+          **Workflow**: `.github/workflows/post-merge.yml`
+
+          **Triggers**: Push to main branch
+
+          **What it does**:
+          - Updates related issues with merge information
+          - Adds deployment status comments
+          - Applies `ready-to-merge` label
+          - Provides deployment monitoring commands
+
+          ## 📋 Agent Integration Patterns
+
+          ### Pattern 1: Feature Development
+          ```
+          1. Create issue → Auto-labeled with 'needs-brainstorming'
+          2. Use @brainstorming agent → Explore solutions
+          3. Use @coding agent → Implement solution
+          4. Create PR → Auto-labeled, review checklist added
+          5. Use @code-review agent → Review changes
+          6. Merge → Auto-deployment notification
+          ```
+
+          ### Pattern 2: Bug Fix
+          ```
+          1. Create issue → Auto-labeled with 'bug', 'needs-investigation'
+          2. Use @coding agent → Implement fix
+          3. Create PR → Auto-labeled, review checklist added
+          4. Use @code-review agent → Review changes
+          5. Merge → Auto-deployment notification
+          ```
+
+          ### Pattern 3: Documentation Update
+          ```
+          1. Create issue or use Agent Helper workflow
+          2. Use @coding agent → Update documentation
+          3. Create PR → Auto-labeled with 'documentation'
+          4. Merge → Auto-deployment
+          ```
+
+          ## 🏷️ Label System
+
+          ### Type Labels
+          - `bug` - Something isn't working
+          - `enhancement` - New feature or request
+          - `documentation` - Documentation improvements
+          - `refactoring` - Code refactoring
+
+          ### Component Labels
+          - `frontend` - React frontend / UI changes
+          - `backend` - Express server / API changes
+          - `hardware` - Hardware integration (sensors, LCD, GPIO)
+          - `mqtt` - MQTT integration
+          - `testing` - Testing related
+
+          ### Workflow Labels
+          - `needs-brainstorming` - Needs brainstorming and planning
+          - `needs-investigation` - Needs investigation
+          - `code-review` - Ready for code review
+          - `ready-to-merge` - Ready to merge
+
+          ### Priority Labels
+          - `priority:high` - High priority
+          - `priority:medium` - Medium priority
+          - `priority:low` - Low priority
+
+          ### Status Labels
+          - `in-progress` - Work in progress
+          - `blocked` - Blocked by something
+          - `good-first-issue` - Good for newcomers
+          - `help-wanted` - Extra attention is needed
+
+          ## 🚀 Quick Start Guide
+
+          ### For New Features
+          1. Go to Issues → New Issue
+          2. Describe the feature (include keywords: "feature", "enhancement")
+          3. Wait for auto-labeling and agent suggestions
+          4. Follow the suggested workflow
+
+          ### For Bug Fixes
+          1. Go to Issues → New Issue
+          2. Describe the bug (include keywords: "bug", "error", "broken")
+          3. Wait for auto-labeling
+          4. Implement fix and create PR
+          5. Follow review checklist
+
+          ### For Using Agent Helper
+          1. Go to Actions → Agent Workflow Helper
+          2. Click "Run workflow"
+          3. Select task type
+          4. Enter description
+          5. New issue will be created with proper setup
+
+          ## 📚 Additional Resources
+
+          - Agent Documentation: `.github/agents/README.md`
+          - Brainstorming Agent: `.github/agents/brainstorming.md`
+          - Coding Agent: `.github/agents/coding.md`
+          - Code Review Agent: `.github/agents/code-review.md`
+
+          ## 💡 Tips
+
+          - Use descriptive issue titles with keywords for better auto-labeling
+          - Reference issues in commit messages with "fixes #123", "closes #123"
+          - Use agent helpers in PR descriptions
+          - Run Label Management workflow after adding new label requirements
+          - Check Actions tab for workflow status and logs
+
+          ---
+
+          **Last Updated**: Auto-generated by workflow
+          EOF
+
+          mv /tmp/AGENT_WORKFLOWS.md .github/AGENT_WORKFLOWS.md
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if git diff --quiet .github/AGENT_WORKFLOWS.md; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit documentation
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/AGENT_WORKFLOWS.md
+          git commit -m "docs: Update agent workflow documentation [skip ci]"
+          git push
+

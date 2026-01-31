@@ -1,0 +1,107 @@
+name: PR Review Reminder
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  review-reminder:
+    name: Add Review Reminder
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Add code review agent reminder
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const pr = context.payload.pull_request;
+            
+            // Only add comment when PR is first opened
+            if (context.payload.action !== 'opened') {
+              return;
+            }
+
+            const message = `## 🔍 Code Review Checklist
+
+Before merging this PR, please use the code review agent to ensure quality:
+
+\`\`\`
+@code-review Review the changes in this PR
+\`\`\`
+
+### Review Focus Areas
+- [ ] Correctness and functionality
+- [ ] TypeScript type safety
+- [ ] Error handling
+- [ ] Performance and resource usage
+- [ ] Security considerations
+- [ ] Hardware integration (if applicable)
+- [ ] Code quality and maintainability
+
+### Testing
+- [ ] Tested in development mode (mocked hardware)
+- [ ] Tested on Raspberry Pi (if hardware changes)
+- [ ] Build passes successfully
+- [ ] Type checks pass
+
+---
+📚 **Reference**: See \`.github/agents/code-review.md\` for detailed review guidelines.`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body: message
+            });
+
+      - name: Auto-label PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const pr = context.payload.pull_request;
+            const title = pr.title.toLowerCase();
+            const body = (pr.body || '').toLowerCase();
+            const labels = [];
+
+            // Categorize PR
+            if (title.includes('fix') || title.includes('bug')) {
+              labels.push('bug');
+            }
+            if (title.includes('feature') || title.includes('add')) {
+              labels.push('enhancement');
+            }
+            if (title.includes('refactor')) {
+              labels.push('refactoring');
+            }
+            if (title.includes('doc')) {
+              labels.push('documentation');
+            }
+
+            // Component labels
+            if (body.includes('frontend') || body.includes('react') || body.includes('ui')) {
+              labels.push('frontend');
+            }
+            if (body.includes('backend') || body.includes('server') || body.includes('api')) {
+              labels.push('backend');
+            }
+            if (body.includes('hardware') || body.includes('sensor')) {
+              labels.push('hardware');
+            }
+
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: labels
+              });
+            }
+

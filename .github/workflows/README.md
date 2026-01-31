@@ -1,0 +1,305 @@
+# GitHub Actions Workflows
+
+This directory contains GitHub Actions workflows that automate various tasks and integrate with the custom agents in `.github/agents/`.
+
+## 📋 Workflows Overview
+
+### Core Workflows
+
+#### 1. **test.yml** - Test Build
+- **Triggers**: Push to non-main branches, PRs to main
+- **Purpose**: Validates builds before merging
+- **Actions**:
+  - Type checking
+  - Server build
+  - Client build
+  - Build artifact verification
+
+#### 2. **build-validation.yml** - Build and Validate
+- **Triggers**: Push to main, manual dispatch
+- **Purpose**: Validates main branch builds and prepares for deployment
+- **Actions**:
+  - Full build process
+  - Artifact verification
+  - Deployment information display
+
+### Agent Integration Workflows
+
+#### 3. **issue-triage.yml** - Issue Triage and Labeling
+- **Triggers**: Issues opened or edited
+- **Purpose**: Automatically categorize and route issues
+- **Features**:
+  - Auto-labeling based on content
+  - Component detection (frontend, backend, hardware)
+  - Workflow suggestions (brainstorming, investigation)
+  - Agent guidance comments
+
+#### 4. **pr-review-reminder.yml** - PR Review Reminder
+- **Triggers**: PRs opened or synchronized
+- **Purpose**: Ensure quality through code review
+- **Features**:
+  - Review checklist addition
+  - Code review agent reminders
+  - PR auto-labeling
+  - Testing guidance
+
+#### 5. **agent-helper.yml** - Agent Workflow Helper
+- **Triggers**: Manual workflow dispatch
+- **Purpose**: Create structured issues with agent guidance
+- **Task Types**:
+  - Brainstorming (planning and exploration)
+  - Implementation (coding tasks)
+  - Review (code review tasks)
+  - Documentation (doc updates)
+
+#### 6. **label-management.yml** - Label Management
+- **Triggers**: Manual dispatch, workflow file changes
+- **Purpose**: Maintain consistent label system
+- **Features**:
+  - Creates all required labels
+  - Updates label colors and descriptions
+  - Ensures repository-wide consistency
+
+#### 7. **post-merge.yml** - Post-Merge Actions
+- **Triggers**: Push to main branch
+- **Purpose**: Update issues and notify about deployment
+- **Features**:
+  - Updates related issues with merge info
+  - Deployment status notifications
+  - Auto-labeling with deployment status
+
+#### 8. **agent-docs.yml** - Agent Workflow Documentation
+- **Triggers**: Manual dispatch, changes to agent files
+- **Purpose**: Keep workflow documentation up-to-date
+- **Features**:
+  - Auto-generates comprehensive workflow docs
+  - Updates on agent or workflow changes
+
+## 🎯 Using the Workflows
+
+### Automatic Workflows
+
+These run automatically - no action needed:
+
+1. **When you create an issue**:
+   - Gets auto-labeled based on content
+   - Receives agent workflow guidance
+   - Component labels added automatically
+
+2. **When you create a PR**:
+   - Builds are tested automatically
+   - Review checklist is added
+   - Component labels applied
+
+3. **When you merge to main**:
+   - Related issues are updated
+   - Deployment info is posted
+   - Build is validated
+
+### Manual Workflows
+
+These can be run manually from the Actions tab:
+
+1. **Agent Workflow Helper**:
+   ```
+   Actions → Agent Workflow Helper → Run workflow
+   - Select task type (brainstorming/implementation/review/documentation)
+   - Enter description
+   - Issue created with proper setup
+   ```
+
+2. **Label Management**:
+   ```
+   Actions → Label Management → Run workflow
+   - Creates/updates all labels
+   - Ensures consistency
+   ```
+
+3. **Agent Workflow Documentation**:
+   ```
+   Actions → Agent Workflow Documentation → Run workflow
+   - Regenerates workflow documentation
+   - Updates AGENT_WORKFLOWS.md
+   ```
+
+## 🏷️ Label System
+
+### Type Labels
+- `bug` 🔴 - Something isn't working
+- `enhancement` 🔵 - New feature or request
+- `documentation` 📘 - Documentation improvements
+- `refactoring` 🔄 - Code refactoring
+
+### Component Labels
+- `frontend` ⚛️ - React frontend / UI changes
+- `backend` 🖥️ - Express server / API changes
+- `hardware` 🔧 - Hardware integration
+- `mqtt` 📡 - MQTT integration
+- `testing` 🧪 - Testing related
+
+### Workflow Labels
+- `needs-brainstorming` 💭 - Needs planning
+- `needs-investigation` 🔍 - Needs investigation
+- `code-review` 👀 - Ready for review
+- `ready-to-merge` ✅ - Ready to merge
+
+### Priority Labels
+- `priority:high` 🔴 - High priority
+- `priority:medium` 🟡 - Medium priority
+- `priority:low` 🟢 - Low priority
+
+### Status Labels
+- `in-progress` 🚧 - Work in progress
+- `blocked` 🚫 - Blocked by something
+- `good-first-issue` 🌱 - Good for newcomers
+- `help-wanted` 🙋 - Extra attention needed
+
+## 🔄 Workflow Integration with Agents
+
+### Feature Development Flow
+```
+Issue Created
+    ↓
+Auto-labeled (needs-brainstorming)
+    ↓
+Use @brainstorming agent
+    ↓
+Use @coding agent
+    ↓
+Create PR (auto review checklist)
+    ↓
+Use @code-review agent
+    ↓
+Merge (auto-deployment notification)
+```
+
+### Bug Fix Flow
+```
+Bug Issue Created
+    ↓
+Auto-labeled (bug, needs-investigation)
+    ↓
+Use @coding agent
+    ↓
+Create PR (auto review checklist)
+    ↓
+Use @code-review agent
+    ↓
+Merge (auto-deployment notification)
+```
+
+## 🛠️ Customization
+
+### Adding New Labels
+
+Edit `.github/workflows/label-management.yml`:
+
+```javascript
+{ 
+  name: 'your-label', 
+  color: 'hexcolor', 
+  description: 'Description' 
+}
+```
+
+Then run the Label Management workflow.
+
+### Modifying Auto-Labeling Rules
+
+Edit `.github/workflows/issue-triage.yml`:
+
+```javascript
+if (title.includes('keyword') || body.includes('keyword')) {
+  labels.push('label-name');
+}
+```
+
+### Adding New Agent Workflow Types
+
+Edit `.github/workflows/agent-helper.yml` to add new task types:
+
+```yaml
+options:
+  - brainstorming
+  - implementation
+  - review
+  - documentation
+  - your-new-type  # Add here
+```
+
+Then add the case handling in the script section.
+
+## 📊 Monitoring Workflows
+
+View workflow runs:
+```
+Repository → Actions tab
+```
+
+Check specific workflow:
+```
+Actions → Select workflow name → View runs
+```
+
+View logs:
+```
+Actions → Select run → Click on job → Expand steps
+```
+
+## 🚀 Best Practices
+
+1. **Use Descriptive Titles**: Include keywords for better auto-labeling
+   - ✅ "Bug: Sensor reading returns null"
+   - ✅ "Feature: Add temperature alerts"
+   - ❌ "Fix it"
+
+2. **Reference Issues**: Use keywords in commit messages
+   - `fixes #123` - Closes the issue
+   - `closes #123` - Closes the issue
+   - `see #123` - References the issue
+
+3. **Follow Checklists**: Use the PR review checklist provided
+
+4. **Use Agent Helper**: For structured task creation
+
+5. **Test Before Merging**: Ensure builds pass and reviews are complete
+
+## 🔒 Permissions
+
+Workflows use these permissions:
+- `issues: write` - For labeling and commenting
+- `pull-requests: write` - For PR comments and labels
+- `contents: read/write` - For reading code and updating docs
+
+All actions use `GITHUB_TOKEN` with minimal required permissions.
+
+## 🐛 Troubleshooting
+
+### Workflow Not Running
+
+1. Check workflow file syntax (YAML)
+2. Verify trigger conditions
+3. Check repository settings → Actions
+
+### Labels Not Applied
+
+1. Run Label Management workflow first
+2. Check auto-labeling logic in issue-triage.yml
+3. Verify keywords in issue title/body
+
+### Permission Errors
+
+1. Check workflow permissions in workflow file
+2. Verify repository Actions settings
+3. Ensure GITHUB_TOKEN has required permissions
+
+## 📚 Additional Resources
+
+- [Custom Agents Documentation](../agents/README.md)
+- [Agent Workflow Guide](../AGENT_WORKFLOWS.md)
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+
+---
+
+**Questions?** Open an issue with the `help-wanted` label!
+
