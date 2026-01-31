@@ -84,8 +84,12 @@ jobs:
           VERSION="${{ env.VERSION }}"
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           
+          # Configurable commit limit for initial releases without previous tags
+          COMMIT_LIMIT=50
+          
           if [ -z "$PREV_TAG" ]; then
-            COMMITS=$(git log --oneline --pretty=format:"- %s (%h)" | head -20)
+            echo "No previous tag found, using last $COMMIT_LIMIT commits"
+            COMMITS=$(git log --oneline --pretty=format:"- %s (%h)" | head -$COMMIT_LIMIT)
           else
             COMMITS=$(git log --oneline --pretty=format:"- %s (%h)" $PREV_TAG..HEAD)
           fi

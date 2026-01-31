@@ -32,24 +32,31 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run TypeScript compiler (strict mode)
-        run: npx tsc --noEmit --strict
-        continue-on-error: true
-
-      - name: Check for any TypeScript errors
+      - name: Check for TypeScript errors
         run: |
           echo "## TypeScript Quality Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if npx tsc --noEmit 2>&1 | grep -q "error TS"; then
+          # Run standard type check (as configured in project)
+          if npx tsc --noEmit 2>&1 | tee ts-errors.log | grep -q "error TS"; then
             echo "⚠️ TypeScript errors found" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
-            npx tsc --noEmit 2>&1 || true
+            cat ts-errors.log
             echo '```' >> $GITHUB_STEP_SUMMARY
           else
             echo "✅ No TypeScript errors found" >> $GITHUB_STEP_SUMMARY
           fi
+          
+          # Check strict mode compliance (informational)
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Strict Mode Analysis" >> $GITHUB_STEP_SUMMARY
+          if npx tsc --noEmit --strict 2>&1 | grep -q "error TS"; then
+            echo "⚠️ Not all code is strict-mode compliant (this is informational)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ Code is strict-mode compliant" >> $GITHUB_STEP_SUMMARY
+          fi
+        continue-on-error: true
 
   dependency-review:
     name: Dependency Review
