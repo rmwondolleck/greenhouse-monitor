@@ -36,7 +36,7 @@ jobs:
           script: |
             const taskType = '${{ inputs.task_type }}';
             const description = '${{ inputs.description }}';
-            
+
             let title = '';
             let body = '';
             let labels = [];
