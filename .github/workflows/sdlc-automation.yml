@@ -1,6 +1,6 @@
 name: SDLC Automation - Issue Resolution
 
-on:
+'on':
   workflow_dispatch:
     inputs:
       issue_numbers:

@@ -23,9 +23,19 @@ This directory contains GitHub Actions workflows that automate various tasks and
   - Artifact verification
   - Deployment information display
 
+#### 3. **workflow-validation.yml** - Workflow Validation
+- **Triggers**: Push/PR to `.github/workflows/`, manual dispatch
+- **Purpose**: Validate and lint GitHub Actions workflow files
+- **Features**:
+  - YAML syntax validation
+  - GitHub Actions schema validation
+  - Style and formatting checks with yamllint
+  - Prevents invalid workflows from being merged
+- **Related Agent**: See `.github/agents/workflow-validator.agent.md`
+
 ### Agent Integration Workflows
 
-#### 3. **issue-triage.yml** - Issue Triage and Labeling
+#### 4. **issue-triage.yml** - Issue Triage and Labeling
 - **Triggers**: Issues opened or edited
 - **Purpose**: Automatically categorize and route issues
 - **Features**:
@@ -34,7 +44,7 @@ This directory contains GitHub Actions workflows that automate various tasks and
   - Workflow suggestions (brainstorming, investigation)
   - Agent guidance comments
 
-#### 4. **pr-review-reminder.yml** - PR Review Reminder
+#### 5. **pr-review-reminder.yml** - PR Review Reminder
 - **Triggers**: PRs opened or synchronized
 - **Purpose**: Ensure quality through code review
 - **Features**:
@@ -43,7 +53,7 @@ This directory contains GitHub Actions workflows that automate various tasks and
   - PR auto-labeling
   - Testing guidance
 
-#### 5. **agent-helper.yml** - Agent Workflow Helper
+#### 6. **agent-helper.yml** - Agent Workflow Helper
 - **Triggers**: Manual workflow dispatch
 - **Purpose**: Create structured issues with agent guidance
 - **Task Types**:
@@ -52,7 +62,7 @@ This directory contains GitHub Actions workflows that automate various tasks and
   - Review (code review tasks)
   - Documentation (doc updates)
 
-#### 6. **label-management.yml** - Label Management
+#### 7. **label-management.yml** - Label Management
 - **Triggers**: Manual dispatch, workflow file changes
 - **Purpose**: Maintain consistent label system
 - **Features**:
@@ -60,7 +70,7 @@ This directory contains GitHub Actions workflows that automate various tasks and
   - Updates label colors and descriptions
   - Ensures repository-wide consistency
 
-#### 7. **post-merge.yml** - Post-Merge Actions
+#### 8. **post-merge.yml** - Post-Merge Actions
 - **Triggers**: Push to main branch
 - **Purpose**: Update issues and notify about deployment
 - **Features**:
@@ -68,14 +78,14 @@ This directory contains GitHub Actions workflows that automate various tasks and
   - Deployment status notifications
   - Auto-labeling with deployment status
 
-#### 8. **agent-docs.yml** - Agent Workflow Documentation
+#### 9. **agent-docs.yml** - Agent Workflow Documentation
 - **Triggers**: Manual dispatch, changes to agent files
 - **Purpose**: Keep workflow documentation up-to-date
 - **Features**:
   - Auto-generates comprehensive workflow docs
   - Updates on agent or workflow changes
 
-#### 9. **create-issues.yml** - Create Issues from Templates
+#### 10. **create-issues.yml** - Create Issues from Templates
 - **Triggers**: Manual workflow dispatch
 - **Purpose**: Bulk-create GitHub issues from markdown templates
 - **Modes**:
@@ -89,7 +99,7 @@ This directory contains GitHub Actions workflows that automate various tasks and
   - Supports labels and milestones
   - Rate limiting to respect GitHub API
 
-#### 10. **sdlc-automation.yml** - SDLC Automation for Issue Resolution
+#### 11. **sdlc-automation.yml** - SDLC Automation for Issue Resolution
 - **Triggers**: Manual workflow dispatch, scheduled daily at 2 AM UTC
 - **Purpose**: Automate the complete SDLC for resolving issues using custom agents
 - **Features**:

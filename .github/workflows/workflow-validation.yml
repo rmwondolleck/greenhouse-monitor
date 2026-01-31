@@ -1,0 +1,52 @@
+name: Workflow Validation
+
+'on':
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-workflows:
+    name: Validate Workflow Files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build validator
+        run: |
+          cd scripts/validate-workflows
+          go build -o validate-workflows .
+
+      - name: Validate workflow syntax
+        run: |
+          ./scripts/validate-workflows/validate-workflows -v .github/workflows/
+
+      - name: Run yamllint (informational)
+        continue-on-error: true
+        run: |
+          pip install yamllint
+          echo "Running yamllint for style checking (warnings only)..."
+          yamllint .github/workflows/
+          echo ""
+          echo "Note: yamllint failures are currently informational."
+          echo "Fix them gradually to improve workflow quality."
+
+      - name: Validation summary
+        if: always()
+        run: |
+          echo "✓ Workflow validation completed"
+          echo "Check the logs above for any issues"

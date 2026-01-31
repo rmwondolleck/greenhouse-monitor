@@ -285,4 +285,9 @@ data
 
 ai-docs
 ai-docs/*
-actionlint
+
+# Go compiled binaries
+scripts/validate-workflows/validate-workflows
+scripts/validate-workflows/validate-workflows.exe
+
+

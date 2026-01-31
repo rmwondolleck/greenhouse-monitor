@@ -49,6 +49,27 @@ This directory contains custom agent configurations for GitHub Copilot to assist
 - "Check this new component for memory leaks"
 - "Review this PR for security and performance issues"
 
+### ✅ Workflow Validator Agent (`workflow-validator.agent.md`)
+**Purpose**: Validate and lint GitHub Actions workflow files to ensure they are syntactically correct and follow best practices.
+
+**Use this agent when:**
+- Creating new workflow files
+- Modifying existing workflows
+- Troubleshooting workflow failures
+- Ensuring workflows follow best practices
+
+**Example prompts:**
+- "Validate the workflow file I just created"
+- "Check all workflows for syntax errors"
+- "Why is my workflow failing to parse?"
+
+**Features:**
+- ✅ YAML syntax validation
+- ✅ GitHub Actions schema validation
+- ✅ Style and formatting linting (yamllint)
+- ✅ Automatic CI/CD integration
+- ✅ Common issue detection and fixes
+
 ### 🎫 Issue Creator Agent (`issue-creator.agent.md`)
 **Purpose**: **Directly create GitHub issues** from markdown templates in `docs/github-issues/` using GitHub's native MCP tools.
 

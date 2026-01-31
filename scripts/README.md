@@ -2,6 +2,46 @@
 
 This directory contains utility scripts for the Greenhouse Monitor project.
 
+## Workflow Validation
+
+### validate-workflows (Go)
+Validates GitHub Actions workflow files for syntax and structure.
+
+**Built with Go for:**
+- ⚡ Better performance (compiled binary)
+- 📦 No runtime dependencies
+- 🌐 Cross-platform portability
+- 🎯 Lightweight for CI/CD
+
+**Build:**
+```bash
+cd scripts/validate-workflows
+go build -o validate-workflows .
+```
+
+**Usage:**
+```bash
+# Validate a specific workflow
+./scripts/validate-workflows/validate-workflows .github/workflows/your-workflow.yml
+
+# Validate all workflows
+./scripts/validate-workflows/validate-workflows .github/workflows/
+
+# With verbose output
+./scripts/validate-workflows/validate-workflows -v .github/workflows/
+```
+
+**What it validates:**
+- ✅ YAML syntax correctness
+- ✅ GitHub Actions workflow structure
+- ✅ Required fields (name, on, jobs)
+- ✅ Job structure (runs-on, steps)
+
+**Related:**
+- Agent documentation: `.github/agents/workflow-validator.agent.md`
+- CI workflow: `.github/workflows/workflow-validation.yml`
+- YAML lint config: `.yamllint`
+
 ## Issue Creation
 
 **⚠️ DEPRECATED: NPM Scripts Removed**

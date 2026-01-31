@@ -1,5 +1,5 @@
 name: Test Build
-on:
+'on':
   push:
     branches-ignore: [ main ]
   pull_request:

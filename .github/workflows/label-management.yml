@@ -1,6 +1,6 @@
 name: Label Management
 
-on:
+'on':
   workflow_dispatch:
   push:
     branches: [main]

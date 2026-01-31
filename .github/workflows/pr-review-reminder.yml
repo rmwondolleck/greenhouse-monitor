@@ -1,6 +1,6 @@
 name: PR Review Reminder
 
-on:
+'on':
   pull_request:
     types: [opened, synchronize]
 
@@ -27,7 +27,7 @@ jobs:
             if (context.payload.action !== 'opened') {
               return;
             }
-
+            
             const message = `## 🔍 Code Review Checklist
 
             Before merging this PR, please use the code review agent to ensure quality:

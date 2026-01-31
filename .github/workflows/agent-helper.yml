@@ -1,6 +1,6 @@
 name: Agent Workflow Helper
 
-on:
+'on':
   workflow_dispatch:
     inputs:
       task_type:
