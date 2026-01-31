@@ -35,14 +35,18 @@ This agent validates and lints GitHub Actions workflow files to ensure they are 
 
 ### Manual Validation
 ```bash
+# Build the validator (first time only)
+cd scripts/validate-workflows
+go build -o validate-workflows .
+
 # Validate a specific workflow file
-python3 scripts/validate-workflows.py .github/workflows/your-workflow.yml
+./scripts/validate-workflows/validate-workflows .github/workflows/your-workflow.yml
 
 # Validate all workflows
-python3 scripts/validate-workflows.py .github/workflows/
+./scripts/validate-workflows/validate-workflows .github/workflows/
 
 # With verbose output
-python3 scripts/validate-workflows.py .github/workflows/ --verbose
+./scripts/validate-workflows/validate-workflows -v .github/workflows/
 ```
 
 ### In GitHub Actions
@@ -143,10 +147,19 @@ Integrated via `.github/workflows/workflow-validation.yml`
 
 ## Tools Used
 
-1. **Python yaml module**: For syntax validation
-2. **yamllint**: For linting and style checking
-3. **GitHub Actions Schema**: For semantic validation
+1. **Go YAML parser** (gopkg.in/yaml.v3): For syntax validation
+2. **Go validator**: Custom validation logic for GitHub Actions workflow structure
+3. **yamllint**: For linting and style checking (optional)
 4. **actionlint** (optional): Advanced workflow validation
+
+## Implementation Details
+
+The validator is written in **Go** for:
+- ⚡ **Better performance**: Compiled binary, fast execution
+- 📦 **Easy distribution**: Single binary, no runtime dependencies
+- 🔒 **Type safety**: Compile-time type checking
+- 🌐 **Portability**: Works on any platform with Go support
+- 🎯 **CI/CD friendly**: Lightweight and fast in pipelines
 
 ## Examples
 

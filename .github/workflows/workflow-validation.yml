@@ -21,22 +21,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          python-version: '3.x'
+          go-version: '1.24'
 
-      - name: Install dependencies
+      - name: Build validator
         run: |
-          pip install pyyaml yamllint
+          cd scripts/validate-workflows
+          go build -o validate-workflows .
 
       - name: Validate workflow syntax
         run: |
-          python3 scripts/validate-workflows.py .github/workflows/ --verbose
+          ./scripts/validate-workflows/validate-workflows -v .github/workflows/
 
       - name: Run yamllint (informational)
         continue-on-error: true
         run: |
+          pip install yamllint
           echo "Running yamllint for style checking (warnings only)..."
           yamllint .github/workflows/
           echo ""

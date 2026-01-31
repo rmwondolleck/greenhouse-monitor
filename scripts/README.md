@@ -4,19 +4,31 @@ This directory contains utility scripts for the Greenhouse Monitor project.
 
 ## Workflow Validation
 
-### validate-workflows.py
+### validate-workflows (Go)
 Validates GitHub Actions workflow files for syntax and structure.
+
+**Built with Go for:**
+- ⚡ Better performance (compiled binary)
+- 📦 No runtime dependencies
+- 🌐 Cross-platform portability
+- 🎯 Lightweight for CI/CD
+
+**Build:**
+```bash
+cd scripts/validate-workflows
+go build -o validate-workflows .
+```
 
 **Usage:**
 ```bash
 # Validate a specific workflow
-python3 scripts/validate-workflows.py .github/workflows/your-workflow.yml
+./scripts/validate-workflows/validate-workflows .github/workflows/your-workflow.yml
 
 # Validate all workflows
-python3 scripts/validate-workflows.py .github/workflows/
+./scripts/validate-workflows/validate-workflows .github/workflows/
 
 # With verbose output
-python3 scripts/validate-workflows.py .github/workflows/ --verbose
+./scripts/validate-workflows/validate-workflows -v .github/workflows/
 ```
 
 **What it validates:**
