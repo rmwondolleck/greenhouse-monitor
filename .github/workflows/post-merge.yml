@@ -1,0 +1,108 @@
+name: Post-Merge Actions
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  update-related-issues:
+    name: Update Related Issues
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check for issue references and update
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const commit = context.payload.head_commit;
+            if (!commit) return;
+
+            const message = commit.message;
+            
+            // Extract issue numbers from commit message
+            // Matches: #123, fixes #123, closes #123, resolves #123
+            const issuePattern = /(?:fixes|closes|resolves|see|ref|references?)\s+#(\d+)/gi;
+            const simplePattern = /#(\d+)/g;
+            
+            const issueNumbers = new Set();
+            
+            let match;
+            while ((match = issuePattern.exec(message)) !== null) {
+              issueNumbers.add(parseInt(match[1]));
+            }
+            
+            // If no keywords found, look for simple references
+            if (issueNumbers.size === 0) {
+              while ((match = simplePattern.exec(message)) !== null) {
+                issueNumbers.add(parseInt(match[1]));
+              }
+            }
+
+            // Add comment to referenced issues
+            for (const issueNumber of issueNumbers) {
+              try {
+                const issue = await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber
+                });
+
+                // Add comment
+                const comment = `✅ Changes related to this issue have been merged to main.\n\n` +
+                  `**Commit**: ${commit.id.substring(0, 7)}\n` +
+                  `**Message**: ${commit.message.split('\n')[0]}\n\n` +
+                  `The changes will be deployed automatically to the Raspberry Pi within 5 minutes.\n` +
+                  `Monitor deployment: \`ssh rwondoll@greenhouse.local 'tail -f ~/deploy.log'\``;
+
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  body: comment
+                });
+
+                console.log(`✅ Added deployment comment to issue #${issueNumber}`);
+
+                // Add label if not already present
+                if (!issue.data.labels.find(l => l.name === 'ready-to-merge')) {
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    labels: ['ready-to-merge']
+                  });
+                }
+              } catch (error) {
+                console.error(`❌ Error updating issue #${issueNumber}:`, error.message);
+              }
+            }
+
+  deployment-notification:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: update-related-issues
+    steps:
+      - name: Notify about deployment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const commit = context.payload.head_commit;
+            
+            console.log('🚀 Deployment Information');
+            console.log('='.repeat(50));
+            console.log(`Commit: ${commit.id.substring(0, 7)}`);
+            console.log(`Message: ${commit.message.split('\n')[0]}`);
+            console.log('');
+            console.log('📍 The Raspberry Pi will auto-deploy within 5 minutes');
+            console.log('🌐 Dashboard: http://greenhouse.local:3000');
+            console.log('📊 Monitor: ssh rwondoll@greenhouse.local \'tail -f ~/deploy.log\'');
+            console.log('🔄 Service: ssh rwondoll@greenhouse.local \'sudo systemctl status greenhouse-monitor\'');
+

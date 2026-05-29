@@ -1,0 +1,220 @@
+name: Repository Health Check
+
+on:
+  schedule:
+    # Run every Monday at 8 AM UTC
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  health-check:
+    name: Repository Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for outdated dependencies
+        id: outdated
+        run: |
+          echo "## 📦 Dependency Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if npm outdated > outdated.txt 2>&1 || [ -s outdated.txt ]; then
+            echo "### Outdated Dependencies" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat outdated.txt || echo "No outdated dependencies"
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            
+            if [ -s outdated.txt ]; then
+              echo "HAS_OUTDATED=true" >> $GITHUB_ENV
+            fi
+          else
+            echo "✅ All dependencies are up to date" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check for security vulnerabilities
+        id: audit
+        run: |
+          echo "## 🔒 Security Audit" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if npm audit --audit-level=moderate > audit.txt 2>&1 || [ -s audit.txt ]; then
+            if grep -q "found.*vulnerabilit" audit.txt; then
+              echo "⚠️ Security vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              cat audit.txt
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              echo "HAS_VULNERABILITIES=true" >> $GITHUB_ENV
+            else
+              echo "✅ No security vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "✅ No security vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check build status
+        run: |
+          echo "## 🏗️ Build Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if npm run build 2>&1; then
+            echo "✅ Build successful" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Build failed" >> $GITHUB_STEP_SUMMARY
+            echo "BUILD_FAILED=true" >> $GITHUB_ENV
+          fi
+
+      - name: Check documentation
+        run: |
+          echo "## 📚 Documentation Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Check for README
+          if [ -f "README.md" ]; then
+            README_SIZE=$(wc -l < README.md)
+            echo "- README.md: ✅ ($README_SIZE lines)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- README.md: ❌ Missing" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Check for documentation directory
+          if [ -d "docs" ]; then
+            DOC_COUNT=$(find docs -name "*.md" | wc -l)
+            echo "- Documentation files: ✅ ($DOC_COUNT files)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Documentation directory: ⚠️ Not found" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Check for .env.example
+          if [ -f ".env.example" ]; then
+            echo "- .env.example: ✅" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- .env.example: ⚠️ Missing" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check workflow files
+        run: |
+          echo "## ⚙️ Workflow Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          WORKFLOW_COUNT=$(find .github/workflows -name "*.yml" -o -name "*.yaml" | wc -l)
+          echo "- Total workflows: $WORKFLOW_COUNT" >> $GITHUB_STEP_SUMMARY
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Active Workflows" >> $GITHUB_STEP_SUMMARY
+          find .github/workflows -name "*.yml" -o -name "*.yaml" | while read workflow; do
+            WORKFLOW_NAME=$(basename "$workflow")
+            echo "- $WORKFLOW_NAME" >> $GITHUB_STEP_SUMMARY
+          done
+
+      - name: Generate health report
+        run: |
+          echo "## 📊 Overall Health Score" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          SCORE=100
+          ISSUES=""
+          
+          if [ "${{ env.HAS_OUTDATED }}" == "true" ]; then
+            SCORE=$((SCORE - 10))
+            ISSUES="$ISSUES\n- Outdated dependencies"
+          fi
+          
+          if [ "${{ env.HAS_VULNERABILITIES }}" == "true" ]; then
+            SCORE=$((SCORE - 30))
+            ISSUES="$ISSUES\n- Security vulnerabilities"
+          fi
+          
+          if [ "${{ env.BUILD_FAILED }}" == "true" ]; then
+            SCORE=$((SCORE - 40))
+            ISSUES="$ISSUES\n- Build failure"
+          fi
+          
+          if [ $SCORE -ge 90 ]; then
+            echo "### 🌟 Excellent ($SCORE/100)" >> $GITHUB_STEP_SUMMARY
+          elif [ $SCORE -ge 70 ]; then
+            echo "### ✅ Good ($SCORE/100)" >> $GITHUB_STEP_SUMMARY
+          elif [ $SCORE -ge 50 ]; then
+            echo "### ⚠️ Fair ($SCORE/100)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Needs Attention ($SCORE/100)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -n "$ISSUES" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Issues found**:" >> $GITHUB_STEP_SUMMARY
+            echo -e "$ISSUES" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Create issue for critical problems
+        if: env.HAS_VULNERABILITIES == 'true' || env.BUILD_FAILED == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const hasVulnerabilities = '${{ env.HAS_VULNERABILITIES }}' === 'true';
+            const buildFailed = '${{ env.BUILD_FAILED }}' === 'true';
+            
+            let title = '🚨 Repository Health Check: ';
+            let body = '## Automated Health Check Report\n\n';
+            body += `**Date**: ${new Date().toISOString()}\n`;
+            body += `**Workflow Run**: ${context.runId}\n\n`;
+            
+            if (buildFailed) {
+              title += 'Build Failure';
+              body += '### ❌ Build Failure\n\n';
+              body += 'The repository build is currently failing. This needs immediate attention.\n\n';
+            } else if (hasVulnerabilities) {
+              title += 'Security Vulnerabilities Found';
+              body += '### 🔒 Security Vulnerabilities\n\n';
+              body += 'Security vulnerabilities were detected in the dependencies. Please review and update.\n\n';
+            }
+            
+            body += '### Actions Required\n\n';
+            if (buildFailed) {
+              body += '1. Review the build logs\n';
+              body += '2. Fix any compilation errors\n';
+              body += '3. Run `npm run build` locally to verify\n\n';
+            }
+            if (hasVulnerabilities) {
+              body += '1. Run `npm audit` to see details\n';
+              body += '2. Run `npm audit fix` to auto-fix\n';
+              body += '3. For breaking changes, update manually\n';
+              body += '4. Re-run health check workflow\n\n';
+            }
+            
+            body += `For more details, check the [workflow run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}).\n`;
+            
+            // Check if a similar issue already exists
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'automated,health-check'
+            });
+            
+            if (issues.data.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['automated', 'health-check', 'priority:high']
+              });
+              console.log('Created new health check issue');
+            } else {
+              console.log('Health check issue already exists');
+            }

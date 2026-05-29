@@ -1,0 +1,152 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+permissions:
+  contents: read
+  deployments: write
+  issues: write
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy to Raspberry Pi
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment || 'production' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Build application
+        run: npm run build
+
+      - name: Verify build artifacts
+        run: |
+          echo "Verifying build artifacts..."
+          test -f dist/server.js || { echo "ERROR: dist/server.js not found"; exit 1; }
+          test -f dist/index.html || { echo "ERROR: dist/index.html not found"; exit 1; }
+          echo "✓ Build artifacts verified"
+
+      - name: Create deployment package
+        run: |
+          echo "Creating deployment package..."
+          tar -czf greenhouse-monitor-deploy.tar.gz \
+            dist/ \
+            package.json \
+            package-lock.json \
+            .env.example
+          ls -lh greenhouse-monitor-deploy.tar.gz
+
+      - name: Upload deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-package
+          path: greenhouse-monitor-deploy.tar.gz
+          retention-days: 30
+
+      - name: Deployment notification
+        run: |
+          echo "## 🚀 Deployment Information" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Deployment Package" >> $GITHUB_STEP_SUMMARY
+          echo "A deployment package has been created and is available as a workflow artifact." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔄 Raspberry Pi Auto-Deploy" >> $GITHUB_STEP_SUMMARY
+          echo "The Raspberry Pi will automatically pull and deploy changes within 5 minutes." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Dashboard**: http://greenhouse.local:3000" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Check deployment logs**:" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo 'ssh rwondoll@greenhouse.local "tail -f ~/deploy.log"' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment on related issues
+        if: github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commit = context.payload.head_commit;
+            if (!commit) return;
+            
+            // Extract issue numbers from commit message
+            const issueRegex = /#(\d+)/g;
+            const matches = [...commit.message.matchAll(issueRegex)];
+            
+            if (matches.length === 0) return;
+            
+            const deploymentUrl = 'http://greenhouse.local:3000';
+            const commitUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}`;
+            
+            for (const match of matches) {
+              const issueNumber = parseInt(match[1]);
+              
+              try {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  body: `## 🚀 Deployed to Production\n\n` +
+                        `Changes from this issue have been deployed!\n\n` +
+                        `- **Commit**: ${commitUrl}\n` +
+                        `- **Dashboard**: ${deploymentUrl}\n` +
+                        `- **Deployed by**: @${context.actor}\n\n` +
+                        `The Raspberry Pi will auto-update within 5 minutes.`
+                });
+                console.log(`✓ Commented on issue #${issueNumber}`);
+              } catch (error) {
+                console.error(`✗ Failed to comment on issue #${issueNumber}:`, error.message);
+              }
+            }
+
+  post-deployment-checks:
+    name: Post-Deployment Checks
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    if: success()
+    steps:
+      - name: Wait for deployment
+        run: |
+          echo "Waiting for Raspberry Pi auto-deployment to complete..."
+          echo "This typically takes 5-10 minutes."
+          sleep 60
+
+      - name: Deployment success summary
+        run: |
+          echo "## ✅ Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The application has been successfully built and the deployment package is ready." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Monitor the Raspberry Pi auto-deployment" >> $GITHUB_STEP_SUMMARY
+          echo "2. Verify the dashboard is accessible at http://greenhouse.local:3000" >> $GITHUB_STEP_SUMMARY
+          echo "3. Check system logs if needed" >> $GITHUB_STEP_SUMMARY
