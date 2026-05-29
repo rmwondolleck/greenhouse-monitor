@@ -8,7 +8,7 @@ on:
 jobs:
   deploy:
     name: Build and Deploy
-    runs-on: self-hosted
+    runs-on: homelab-greenhouse-monitor
     environment: production
 
     steps:
