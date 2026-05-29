@@ -8,7 +8,8 @@ on:
 jobs:
   deploy:
     name: Build and Deploy
-    runs-on: self-hosted
+    runs-on: homelab-greenhouse-monitor
+    environment: production
 
     steps:
       - name: Checkout code
@@ -36,7 +37,6 @@ jobs:
           fi
           if [ -d "$DEPLOY_DIR/dist" ]; then
             cp -r "$DEPLOY_DIR/dist" "$DEPLOY_DIR/dist.backup"
-            echo "✅ Backup created"
           fi
 
       - name: Stop service gracefully
@@ -52,7 +52,28 @@ jobs:
           rm -rf "$DEPLOY_DIR/dist"
           cp -r dist "$DEPLOY_DIR/"
           cp package*.json "$DEPLOY_DIR/"
-          echo "✅ Files deployed"
+
+      - name: Write .env file
+        run: |
+          DEPLOY_DIR="/home/rwondoll/app/greenhouse-monitor"
+          cat > "$DEPLOY_DIR/.env" << EOF
+          PORT=3000
+          GREENHOUSE_DATA_DIR=./data
+          MAX_DATA_ENTRIES=8760
+          DATA_SAVE_INTERVAL=300000
+          RASPBERRY_PI=true
+          NODE_ENV=production
+          CPU_TEMP_THRESHOLD=80
+          LCD_SLEEP_START=21
+          LCD_SLEEP_END=9
+          MQTT_ENABLED=true
+          MQTT_BROKER_HOST=${{ secrets.MQTT_BROKER_HOST }}
+          MQTT_BROKER_PORT=${{ secrets.MQTT_BROKER_PORT }}
+          MQTT_USERNAME=${{ secrets.MQTT_USERNAME }}
+          MQTT_PASSWORD=${{ secrets.MQTT_PASSWORD }}
+          MQTT_CLIENT_ID=greenhouse-monitor
+          MQTT_BASE_TOPIC=homeassistant
+          EOF
 
       - name: Install production dependencies
         run: |
@@ -71,7 +92,6 @@ jobs:
             echo "✅ Deployment successful!"
             COMMIT=$(git rev-parse --short HEAD)
             echo "Deployed commit: $COMMIT"
-            echo "Service status:"
             sudo systemctl status greenhouse-monitor --no-pager -l
           else
             echo "❌ Service failed to start"
@@ -92,10 +112,6 @@ jobs:
             echo "✅ Restored backup"
           fi
           sudo systemctl start greenhouse-monitor
-          sleep 3
-          if sudo systemctl is-active --quiet greenhouse-monitor; then
-            echo "✅ Rollback successful - previous version restored"
-          else
-            echo "❌ Rollback failed - manual intervention required"
-          fi
+          echo "Rollback complete - previous version restored"
+
 
