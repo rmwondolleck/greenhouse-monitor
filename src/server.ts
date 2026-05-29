@@ -648,6 +648,39 @@ class GreenhouseController {
         setInterval(() => {
             this.readSensor();
         }, 5000);
+
+        // Refresh LCD every hour to clear any I2C artifacts/scrambling
+        setInterval(() => {
+            this.refreshLCD();
+        }, 60 * 60 * 1000); // 1 hour
+    }
+
+    /**
+     * Full LCD refresh to clear I2C artifacts.
+     * Clears the display completely, waits briefly, then rewrites current data.
+     */
+    private refreshLCD(): void {
+        try {
+            if (this.isLcdSleepTime()) {
+                return; // Don't refresh during sleep hours
+            }
+
+            console.log('📺 LCD: Performing hourly refresh to clear artifacts');
+
+            // Clear both rows
+            this.lcd.text(0, 0, '                '); // 16 spaces
+            this.lcd.text(1, 0, '                '); // 16 spaces
+
+            // Brief pause to let the clear take effect
+            setTimeout(() => {
+                // Rewrite current data
+                if (this.currentData) {
+                    this.updateLCD(this.currentData.temperature, this.currentData.humidity);
+                }
+            }, 500);
+        } catch (error) {
+            console.error('❌ LCD refresh error:', error);
+        }
     }
 
     private startArchiveSchedule(): void {
