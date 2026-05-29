@@ -1,0 +1,117 @@
+name: Deploy to Raspberry Pi
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: homelab-greenhouse-monitor
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Build application
+        run: npm run build
+
+      - name: Backup current version
+        run: |
+          DEPLOY_DIR="/home/rwondoll/app/greenhouse-monitor"
+          if [ -d "$DEPLOY_DIR/dist.backup" ]; then
+            rm -rf "$DEPLOY_DIR/dist.backup"
+          fi
+          if [ -d "$DEPLOY_DIR/dist" ]; then
+            cp -r "$DEPLOY_DIR/dist" "$DEPLOY_DIR/dist.backup"
+          fi
+
+      - name: Stop service gracefully
+        run: sudo systemctl stop greenhouse-monitor
+        continue-on-error: true
+
+      - name: Wait for graceful shutdown
+        run: sleep 5
+
+      - name: Deploy files
+        run: |
+          DEPLOY_DIR="/home/rwondoll/app/greenhouse-monitor"
+          rm -rf "$DEPLOY_DIR/dist"
+          cp -r dist "$DEPLOY_DIR/"
+          cp package*.json "$DEPLOY_DIR/"
+
+      - name: Write .env file
+        run: |
+          DEPLOY_DIR="/home/rwondoll/app/greenhouse-monitor"
+          cat > "$DEPLOY_DIR/.env" << EOF
+          PORT=3000
+          GREENHOUSE_DATA_DIR=./data
+          MAX_DATA_ENTRIES=8760
+          DATA_SAVE_INTERVAL=300000
+          RASPBERRY_PI=true
+          NODE_ENV=production
+          CPU_TEMP_THRESHOLD=80
+          LCD_SLEEP_START=21
+          LCD_SLEEP_END=9
+          MQTT_ENABLED=true
+          MQTT_BROKER_HOST=${{ secrets.MQTT_BROKER_HOST }}
+          MQTT_BROKER_PORT=${{ secrets.MQTT_BROKER_PORT }}
+          MQTT_USERNAME=${{ secrets.MQTT_USERNAME }}
+          MQTT_PASSWORD=${{ secrets.MQTT_PASSWORD }}
+          MQTT_CLIENT_ID=greenhouse-monitor
+          MQTT_BASE_TOPIC=homeassistant
+          EOF
+
+      - name: Install production dependencies
+        run: |
+          cd /home/rwondoll/app/greenhouse-monitor
+          npm ci --production
+
+      - name: Start service
+        run: sudo systemctl start greenhouse-monitor
+
+      - name: Wait for startup
+        run: sleep 5
+
+      - name: Verify deployment
+        run: |
+          if sudo systemctl is-active --quiet greenhouse-monitor; then
+            echo "✅ Deployment successful!"
+            COMMIT=$(git rev-parse --short HEAD)
+            echo "Deployed commit: $COMMIT"
+            sudo systemctl status greenhouse-monitor --no-pager -l
+          else
+            echo "❌ Service failed to start"
+            echo "Checking logs..."
+            sudo journalctl -u greenhouse-monitor -n 50 --no-pager
+            exit 1
+          fi
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "⚠️ Deployment failed - Rolling back to previous version..."
+          DEPLOY_DIR="/home/rwondoll/app/greenhouse-monitor"
+          sudo systemctl stop greenhouse-monitor
+          rm -rf "$DEPLOY_DIR/dist"
+          if [ -d "$DEPLOY_DIR/dist.backup" ]; then
+            mv "$DEPLOY_DIR/dist.backup" "$DEPLOY_DIR/dist"
+            echo "✅ Restored backup"
+          fi
+          sudo systemctl start greenhouse-monitor
+          echo "Rollback complete - previous version restored"
+
+

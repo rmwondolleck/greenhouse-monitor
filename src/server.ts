@@ -87,6 +87,9 @@ class DataLogger {
         this.maxEntries = maxEntries;
         this.ensureDataDirectory();
         console.log(`📁 Data storage initialized: ${this.dataFile}`);
+
+        // Archive previous month's data on startup if needed
+        this.archiveIfNewMonth();
     }
 
     private ensureDataDirectory(): void {
@@ -213,6 +216,52 @@ class DataLogger {
             oldest: data.length > 0 ? data[0].timestamp : null,
             newest: data.length > 0 ? data[data.length - 1].timestamp : null
         };
+    }
+
+    /**
+     * Archive the current data file if a new month has started.
+     * Copies greenhouse-data.json → greenhouse-data-YYYY-MM.json for the previous month.
+     * Safe to call multiple times; will only archive once per month.
+     */
+    public archiveIfNewMonth(): void {
+        try {
+            if (!fs.existsSync(this.dataFile)) {
+                return; // Nothing to archive
+            }
+
+            const now = new Date();
+            // Calculate previous month
+            const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const year = prevMonth.getFullYear();
+            const month = String(prevMonth.getMonth() + 1).padStart(2, '0');
+            const archiveFilename = `greenhouse-data-${year}-${month}.json`;
+            const archivePath = path.join(this.getDataDirectory(), archiveFilename);
+
+            // Only archive if we don't already have one for last month
+            if (fs.existsSync(archivePath)) {
+                return; // Already archived
+            }
+
+            // Check if the data file actually has data from last month
+            const data = JSON.parse(fs.readFileSync(this.dataFile, 'utf8'));
+            if (!Array.isArray(data) || data.length === 0) {
+                return; // No data to archive
+            }
+
+            // Check if any data points are from the previous month or earlier
+            const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 1); // Start of current month
+            const hasOldData = data.some((point: DataPoint) => new Date(point.timestamp) < prevMonthEnd);
+
+            if (!hasOldData) {
+                return; // No data from previous month to archive
+            }
+
+            // Copy current data file as the archive for last month
+            fs.copyFileSync(this.dataFile, archivePath);
+            console.log(`📦 Archived data for ${year}-${month}: ${archivePath}`);
+        } catch (error) {
+            console.error('❌ Error archiving monthly data:', error);
+        }
     }
 }
 
@@ -356,6 +405,7 @@ class GreenhouseController {
         this.setupRoutes();
         this.startSensorPolling();
         this.startSystemMonitoring();
+        this.startArchiveSchedule();
         this.logConfiguration();
     }
 
@@ -598,6 +648,15 @@ class GreenhouseController {
         setInterval(() => {
             this.readSensor();
         }, 5000);
+    }
+
+    private startArchiveSchedule(): void {
+        // Check once per day (every 24 hours) if we need to archive last month's data
+        const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+        setInterval(() => {
+            this.dataLogger.archiveIfNewMonth();
+        }, TWENTY_FOUR_HOURS);
+        console.log('📦 Monthly archive schedule started (checks daily)');
     }
 
     private startSystemMonitoring(): void {
